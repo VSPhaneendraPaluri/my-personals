@@ -18,6 +18,7 @@ import { HobbiesSection } from './components/HobbiesSection';
 import { JourneySection } from './components/JourneySection';
 import { ContactSection } from './components/ContactSection';
 import { BlogsSection } from './components/BlogsSection';
+import { FlowIntroductionPost } from './components/FlowIntroductionPost';
 import { Footer } from './components/Footer';
 import { ResumeModal } from './components/ResumeModal';
 import { CursorSpotlight } from './components/CursorSpotlight';
@@ -148,6 +149,8 @@ export default function App() {
           <ContactSection profile={profile} accent={accent} />
         ) : currentPage === '/blogs' ? (
           <BlogsSection accent={accent} />
+        ) : currentPage === '/blogs/teaching-grammar-to-generate-instructions-introducing-flow' ? (
+          <FlowIntroductionPost accent={accent} />
         ) : (
           <Hero
             profile={profile}
