@@ -1,0 +1,7 @@
+{
+  "name": "Lumina - Dynamic Hover & Spotlight Portfolio",
+  "description": "An interactive glassmorphism portfolio featuring dynamic hover spotlights, cursor-following animations, interactive CV, achievements, passion projects, and contact suite.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+

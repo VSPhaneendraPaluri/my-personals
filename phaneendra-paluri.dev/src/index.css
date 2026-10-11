@@ -1,0 +1,207 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    overflow-x: hidden;
+  }
+  h1, h2, h3, h4, .font-display {
+    font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  }
+  code, pre, .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+/* Glassmorphism card with dynamic radial hover highlight based on cursor movement */
+.spotlight-card {
+  position: relative;
+  background: rgba(18, 18, 24, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: border-color 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+}
+
+.spotlight-card::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: radial-gradient(
+    380px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    var(--spotlight-color, rgba(56, 189, 248, 0.45)),
+    transparent 70%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.spotlight-card:hover::before {
+  opacity: 1;
+}
+
+.spotlight-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    420px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    var(--spotlight-glow, rgba(56, 189, 248, 0.1)),
+    transparent 75%
+  );
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.spotlight-card:hover::after {
+  opacity: 1;
+}
+
+.experience-card {
+  transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1), border-color 250ms ease, box-shadow 300ms ease;
+}
+
+.experience-card:hover,
+.experience-card:focus-within,
+.experience-card[data-expanded="true"] {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--spotlight-color, rgba(56, 189, 248, 0.45)) 55%, transparent);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.32), 0 0 30px var(--spotlight-glow, rgba(56, 189, 248, 0.1));
+}
+
+.experience-details {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: max-height 350ms ease, opacity 250ms ease, transform 300ms ease;
+}
+
+.experience-card:hover .experience-details,
+.experience-card:focus-within .experience-details,
+.experience-card[data-expanded="true"] .experience-details {
+  max-height: 80rem;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.experience-card:hover .experience-marker,
+.experience-card:focus-within .experience-marker,
+.experience-card[data-expanded="true"] .experience-marker {
+  transform: scale(1.25);
+}
+
+.experience-chevron {
+  transition: transform 300ms ease;
+}
+
+.hero-system-visual {
+  background:
+    radial-gradient(ellipse at 50% 42%, rgba(var(--hero-accent-rgb), 0.11), transparent 48%),
+    linear-gradient(145deg, #10141c, #090a0f 75%);
+}
+
+.hero-system-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+  background-size: 30px 30px;
+  mask-image: radial-gradient(ellipse at center, black 15%, transparent 78%);
+}
+
+.hero-system-glow {
+  background: radial-gradient(circle at 50% 43%, rgba(var(--hero-accent-rgb), 0.2), transparent 44%);
+  animation: hero-glow 5s ease-in-out infinite alternate;
+}
+
+.hero-orbit-outer {
+  animation: hero-orbit 32s linear infinite;
+}
+
+.hero-orbit-inner {
+  animation: hero-orbit-reverse 24s linear infinite;
+}
+
+.hero-orbit-node {
+  animation: hero-node-pulse 3s ease-in-out infinite;
+}
+
+.hero-orbit-node-delayed {
+  animation-delay: -1.2s;
+}
+
+.hero-orbit-node-slow {
+  animation-delay: -2.1s;
+}
+
+@keyframes hero-glow {
+  from { opacity: 0.55; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1.04); }
+}
+
+@keyframes hero-orbit {
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+@keyframes hero-orbit-reverse {
+  from { transform: translate(-50%, -50%) rotate(360deg); }
+  to { transform: translate(-50%, -50%) rotate(0deg); }
+}
+
+@keyframes hero-node-pulse {
+  0%, 100% { opacity: 0.65; }
+  50% { opacity: 1; }
+}
+
+.experience-card:hover .experience-chevron,
+.experience-card:focus-within .experience-chevron,
+.experience-card[data-expanded="true"] .experience-chevron {
+  transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .experience-card,
+  .experience-details,
+  .experience-marker,
+  .experience-chevron,
+  .hero-system-glow,
+  .hero-orbit,
+  .hero-orbit-node {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* Iridescent glass panel */
+.glass-panel {
+  background: rgba(15, 17, 23, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Custom delicate scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #090a0f;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
