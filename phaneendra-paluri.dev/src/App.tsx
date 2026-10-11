@@ -12,13 +12,15 @@ import {
 } from './data/portfolioData';
 import { UserProfile, ThemeAccent } from './types/portfolio';
 import { Navbar } from './components/Navbar';
-import { Hero } from './components/Hero';
+import { AboutMeSection } from './components/AboutMeSection';
 import { CVSection } from './components/CVSection';
 import { HobbiesSection } from './components/HobbiesSection';
 import { JourneySection } from './components/JourneySection';
 import { ContactSection } from './components/ContactSection';
 import { BlogsSection } from './components/BlogsSection';
 import { FlowIntroductionPost } from './components/FlowIntroductionPost';
+import { MarkdownBlogPost } from './components/MarkdownBlogPost';
+import { blogPosts } from './data/blogPosts';
 import { Footer } from './components/Footer';
 import { ResumeModal } from './components/ResumeModal';
 import { CursorSpotlight } from './components/CursorSpotlight';
@@ -26,6 +28,7 @@ import { PortfolioCustomizer } from './components/PortfolioCustomizer';
 
 export default function App() {
   const currentPage = window.location.pathname.replace(/\/+$/, '') || '/';
+  const currentBlogPost = blogPosts.find(({ slug }) => slug === currentPage);
   const [profile, setProfile] = useState<UserProfile>(() => {
     try {
       const saved = localStorage.getItem('lumina_profile_v1');
@@ -149,13 +152,14 @@ export default function App() {
           <ContactSection profile={profile} accent={accent} />
         ) : currentPage === '/blogs' ? (
           <BlogsSection accent={accent} />
-        ) : currentPage === '/blogs/teaching-grammar-to-generate-instructions-introducing-flow' ? (
-          <FlowIntroductionPost accent={accent} />
+        ) : currentBlogPost ? (
+          currentBlogPost.slug === '/blogs/teaching-grammar-to-generate-instructions-introducing-flow'
+            ? <FlowIntroductionPost accent={accent} />
+            : <MarkdownBlogPost post={currentBlogPost} accent={accent} />
         ) : (
-          <Hero
+          <AboutMeSection
             profile={profile}
             accent={accent}
-            onOpenResumeModal={() => setResumeModalOpen(true)}
           />
         )}
       </main>

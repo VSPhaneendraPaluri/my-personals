@@ -1,15 +1,15 @@
 import React, { useRef, useState } from 'react';
-import { ArrowDown, Mail, Sparkles, FileText, ExternalLink, MapPin, Cpu } from 'lucide-react';
+import { Sparkles, MapPin, Cpu } from 'lucide-react';
 import { UserProfile, ThemeAccent } from '../types/portfolio';
 import { getAccentValues } from './CursorSpotlight';
+import { LatestFeeds } from './LatestFeeds';
 
-interface HeroProps {
+interface AboutMeSectionProps {
   profile: UserProfile;
   accent: ThemeAccent;
-  onOpenResumeModal: () => void;
 }
 
-export const Hero: React.FC<HeroProps> = ({ profile, accent, onOpenResumeModal }) => {
+export const AboutMeSection: React.FC<AboutMeSectionProps> = ({ profile, accent }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [tilt, setTilt] = useState({ rotateX: 0, rotateY: 0 });
   const accentVals = getAccentValues(accent);
@@ -39,7 +39,7 @@ export const Hero: React.FC<HeroProps> = ({ profile, accent, onOpenResumeModal }
   return (
     <section id="overview" className="relative pt-32 pb-20 sm:pt-36 sm:pb-24 overflow-hidden">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 relative z-10">
-        {/* Split Screen 2-Column Hero */}
+        {/* Split-screen introduction */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
           
           {/* Left Column: Typographic Hierarchy */}
@@ -82,24 +82,7 @@ export const Hero: React.FC<HeroProps> = ({ profile, accent, onOpenResumeModal }
               <span className="text-neutral-200 font-medium">Current Status:</span> {profile.availability}
             </div>
 
-            {/* Action Buttons */}
-            <div className="pt-2 flex flex-wrap items-center gap-4 w-full sm:w-auto">
-              <button
-                onClick={onOpenResumeModal}
-                className="px-5 py-3 rounded-xl text-sm font-medium text-white bg-white/5 hover:bg-white/10 border border-white/15 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap"
-              >
-                <FileText className="w-4 h-4 text-neutral-400" />
-                <span>Interactive CV</span>
-              </button>
-
-              <a
-                href="/contact"
-                className="px-5 py-3 rounded-xl text-sm font-medium text-neutral-300 hover:text-white transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
-              >
-                <Mail className="w-4 h-4 text-neutral-400" />
-                <span>Contact</span>
-              </a>
-            </div>
+            <LatestFeeds accent={accent} />
 
           </div>
 

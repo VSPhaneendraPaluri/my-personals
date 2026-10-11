@@ -1,3 +1,10 @@
+---
+publishedAt: 2026-10-11
+topicId: modelling-verification
+seriesLabel: FLOW · Series 1
+excerpt: A hobby project on grammar-driven instruction stream generation for CPU verification, and an exploration of how test intent can live outside the generator.
+---
+
 # Teaching Grammar to Generate Instructions: Introducing FLOW
 
 *A hobby project on grammar-driven instruction stream generation for CPU verification, and the first post in a series.*
