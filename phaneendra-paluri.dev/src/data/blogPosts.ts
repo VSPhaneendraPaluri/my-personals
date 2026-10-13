@@ -5,9 +5,14 @@ export const writingTopics = [
     description: 'Notes on processor design, SoC architecture, and exploring complex systems.',
   },
   {
-    id: 'modelling-verification',
-    title: 'Modelling & Verification',
-    description: 'Practical write-ups on SystemC, virtual prototyping, and verification workflows.',
+    id: 'virtual-prototyping',
+    title: 'Virtual Prototyping',
+    description: 'Practical write-ups on SystemC models, virtual platforms, and software development before silicon.',
+  },
+  {
+    id: 'isg',
+    title: 'ISG',
+    description: 'Notes and articles about instruction-stream generation and FLOW.',
   },
   {
     id: 'experiments-ideas',

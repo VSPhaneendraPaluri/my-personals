@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="640" viewBox="0 0 1200 640" role="img" aria-labelledby="title desc">
+  <title id="title">Ordinary and negative tests</title>
+  <desc id="desc">Ordinary tests follow architecture-aware generation to produce a legal stream. Negative tests explicitly challenge the zero-register constraint and declare the expected outcome.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#101a2c"/>
+      <stop offset="1" stop-color="#111321"/>
+    </linearGradient>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0 10 5 0 10Z" fill="#7d91ad"/>
+    </marker>
+    <style>
+      text { font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+      .muted { fill: #9aacc4; }
+    </style>
+  </defs>
+  <rect width="1200" height="640" rx="30" fill="url(#bg)"/>
+  <text x="62" y="70" fill="#73e0d0" font-size="16" font-weight="700" letter-spacing="3">ONE ARCHITECTURAL FACT · TWO TEST INTENTS</text>
+  <text x="62" y="118" fill="#f3f6fc" font-size="32" font-weight="700">Ordinary legality and deliberate violation are different by design.</text>
+
+  <rect x="58" y="155" width="520" height="423" rx="24" fill="#142c35" stroke="#44d3b8" stroke-width="1.7"/>
+  <rect x="622" y="155" width="520" height="423" rx="24" fill="#302536" stroke="#f0a36b" stroke-width="1.7"/>
+  <rect x="86" y="180" width="150" height="30" rx="15" fill="#174a42"/>
+  <text x="161" y="201" fill="#8af0dc" font-size="13" font-weight="700" text-anchor="middle" letter-spacing="1">ORDINARY TEST</text>
+  <rect x="650" y="180" width="166" height="30" rx="15" fill="#573728"/>
+  <text x="733" y="201" fill="#ffd0a9" font-size="13" font-weight="700" text-anchor="middle" letter-spacing="1">NEGATIVE TEST</text>
+
+  <rect x="101" y="237" width="432" height="76" rx="15" fill="#1b3d43"/>
+  <circle cx="130" cy="275" r="16" fill="#27665b"/>
+  <text x="130" y="281" fill="#a8ffec" font-size="15" font-weight="700" text-anchor="middle">1</text>
+  <text x="161" y="271" fill="#f3f6fc" font-size="19" font-weight="700">Choose test intent</text>
+  <text x="161" y="295" class="muted" font-size="14">Describe the behavior to explore</text>
+  <path d="M317 315 V338" stroke="#7d91ad" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="101" y="345" width="432" height="76" rx="15" fill="#1b3d43"/>
+  <circle cx="130" cy="383" r="16" fill="#27665b"/>
+  <text x="130" y="389" fill="#a8ffec" font-size="15" font-weight="700" text-anchor="middle">2</text>
+  <text x="161" y="379" fill="#f3f6fc" font-size="19" font-weight="700">Apply architecture knowledge</text>
+  <text x="161" y="403" class="muted" font-size="14">Zero register is protected automatically</text>
+  <path d="M317 423 V446" stroke="#7d91ad" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="101" y="453" width="432" height="76" rx="15" fill="#1b3d43"/>
+  <circle cx="130" cy="491" r="16" fill="#27665b"/>
+  <text x="130" y="497" fill="#a8ffec" font-size="15" font-weight="700" text-anchor="middle">3</text>
+  <text x="161" y="487" fill="#f3f6fc" font-size="19" font-weight="700">Generate a legal stream</text>
+  <text x="161" y="511" class="muted" font-size="14">No duplicated legality assumptions</text>
+
+  <rect x="665" y="237" width="432" height="76" rx="15" fill="#41313a"/>
+  <circle cx="694" cy="275" r="16" fill="#81513d"/>
+  <text x="694" y="281" fill="#ffe2c9" font-size="15" font-weight="700" text-anchor="middle">1</text>
+  <text x="725" y="271" fill="#f3f6fc" font-size="19" font-weight="700">Choose the constraint to test</text>
+  <text x="725" y="295" class="muted" font-size="14">Explicitly challenge zero-register behavior</text>
+  <path d="M881 315 V338" stroke="#b48b80" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="665" y="345" width="432" height="76" rx="15" fill="#41313a"/>
+  <circle cx="694" cy="383" r="16" fill="#81513d"/>
+  <text x="694" y="389" fill="#ffe2c9" font-size="15" font-weight="700" text-anchor="middle">2</text>
+  <text x="725" y="379" fill="#f3f6fc" font-size="19" font-weight="700">Declare the expected outcome</text>
+  <text x="725" y="403" class="muted" font-size="14">The violation is intentional, not accidental</text>
+  <path d="M881 423 V446" stroke="#b48b80" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="665" y="453" width="432" height="76" rx="15" fill="#41313a"/>
+  <circle cx="694" cy="491" r="16" fill="#81513d"/>
+  <text x="694" y="497" fill="#ffe2c9" font-size="15" font-weight="700" text-anchor="middle">3</text>
+  <text x="725" y="487" fill="#f3f6fc" font-size="19" font-weight="700">Report against that expectation</text>
+  <text x="725" y="511" class="muted" font-size="14">A clear result for a deliberate negative</text>
+  <text x="62" y="611" fill="#8192aa" font-size="14">The architecture remains the source of truth in both paths; test intent declares when to challenge it.</text>
+</svg>

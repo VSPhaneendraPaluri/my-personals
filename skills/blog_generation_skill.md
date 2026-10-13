@@ -16,8 +16,8 @@ Use this workflow whenever a Markdown article is added to the site as a blog pos
   ```yaml
   ---
   publishedAt: 2026-10-11
-  topicId: modelling-verification
-  seriesLabel: FLOW · Series 1
+  topicId: isg
+  seriesLabel: FLOW · Part 1
   excerpt: A concise summary for the post listing and About Me feed.
   ---
 

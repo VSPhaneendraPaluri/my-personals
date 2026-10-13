@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700" role="img" aria-labelledby="title desc">
+  <title id="title">Who owns legality?</title>
+  <desc id="desc">The ISA developer owns architectural legality. Test architect and test writer responsibilities fit within the architecture boundary. A separately modeled simulator cross-checks the generator.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#101a2c"/>
+      <stop offset="1" stop-color="#111321"/>
+    </linearGradient>
+    <linearGradient id="arch" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#183b53"/>
+      <stop offset="1" stop-color="#172a42"/>
+    </linearGradient>
+    <linearGradient id="intent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#233650"/>
+      <stop offset="1" stop-color="#202741"/>
+    </linearGradient>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0 10 5 0 10Z" fill="#6ee7d2"/>
+    </marker>
+    <style>
+      text { font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+      .muted { fill: #9aacc4; }
+    </style>
+  </defs>
+  <rect width="1200" height="700" rx="30" fill="url(#bg)"/>
+  <circle cx="1060" cy="75" r="180" fill="#38bdf8" opacity=".055"/>
+  <text x="66" y="70" fill="#73e0d0" font-size="17" font-weight="700" letter-spacing="3">FLOW · DESIGN PRINCIPLE</text>
+  <text x="66" y="119" fill="#f3f6fc" font-size="34" font-weight="700">Separate the owners. Keep legality authoritative.</text>
+
+  <rect x="58" y="158" width="760" height="474" rx="24" fill="url(#arch)" stroke="#4ccbbd" stroke-width="2"/>
+  <rect x="84" y="182" width="196" height="34" rx="17" fill="#174a50"/>
+  <text x="182" y="205" fill="#8af0dc" font-size="14" font-weight="700" text-anchor="middle" letter-spacing="1.5">ARCHITECTURE BOUNDARY</text>
+  <text x="92" y="271" fill="#f4f7fd" font-size="24" font-weight="700">ISA developer</text>
+  <text x="92" y="304" class="muted" font-size="18">Defines architectural facts and what is legal</text>
+  <rect x="92" y="326" width="688" height="271" rx="19" fill="url(#intent)" stroke="#6b82a3" stroke-width="1.5"/>
+  <text x="124" y="370" fill="#cbd8ed" font-size="14" font-weight="700" letter-spacing="2">TEST INTENT · INSIDE THE ARCHITECTURE</text>
+  <line x1="124" y1="392" x2="748" y2="392" stroke="#53647d" stroke-width="1"/>
+  <circle cx="145" cy="442" r="8" fill="#f6bd60"/>
+  <text x="171" y="450" fill="#f3f6fc" font-size="21" font-weight="700">Test architect</text>
+  <text x="171" y="480" class="muted" font-size="16">Chooses what deserves verification</text>
+  <circle cx="145" cy="534" r="8" fill="#a78bfa"/>
+  <text x="171" y="542" fill="#f3f6fc" font-size="21" font-weight="700">Test writer</text>
+  <text x="171" y="572" class="muted" font-size="16">Composes scenarios without restating legality</text>
+
+  <rect x="860" y="268" width="282" height="205" rx="23" fill="#211e38" stroke="#a78bfa" stroke-width="2"/>
+  <circle cx="902" cy="311" r="9" fill="#a78bfa"/>
+  <text x="926" y="318" fill="#d8cbff" font-size="13" font-weight="700" letter-spacing="1.4">INDEPENDENT MODEL</text>
+  <text x="890" y="368" fill="#f5f2ff" font-size="22" font-weight="700">Simulator</text>
+  <text x="890" y="400" class="muted" font-size="16">Its own view of architectural</text>
+  <text x="890" y="424" class="muted" font-size="16">legality and behavior</text>
+  <path d="M818 371 C838 371 841 371 858 371" fill="none" stroke="#6ee7d2" stroke-width="3" stroke-dasharray="5 9" marker-end="url(#arrow)"/>
+  <text x="833" y="342" fill="#78dfd1" font-size="13" font-weight="700" text-anchor="middle">CROSS-CHECK</text>
+  <text x="860" y="518" fill="#a9b7ca" font-size="15">Separate readings of the spec</text>
+  <text x="860" y="543" fill="#a9b7ca" font-size="15">make the comparison meaningful.</text>
+  <text x="66" y="667" fill="#8192aa" font-size="14">One person may fill multiple roles; the responsibilities remain distinct.</text>
+</svg>

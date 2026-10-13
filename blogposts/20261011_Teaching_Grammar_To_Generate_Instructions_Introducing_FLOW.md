@@ -1,7 +1,7 @@
 ---
 publishedAt: 2026-10-11
-topicId: modelling-verification
-seriesLabel: FLOW · Series 1
+topicId: isg
+seriesLabel: FLOW · Part 1
 excerpt: A hobby project on grammar-driven instruction stream generation for CPU verification, and an exploration of how test intent can live outside the generator.
 ---
 
@@ -16,6 +16,8 @@ Somewhere in a verification lab, a processor is running a program that no human 
 That is not a failure of process. It is the process. A CPU makes one promise, *run any legal program and produce exactly the architecturally correct result*, and no team can write enough programs to test it. So we build tools that write programs: **Instruction Stream Generators (ISGs)**. They produce long, legal, varied sequences of instructions, run them on the design and on a reference, and compare the results.
 
 This post introduces **FLOW**, a hobby project to build a framework for those tools, driven by a grammar. It is the first in a series.
+
+**FLOW** stands for **Framework for Instruction Orchestration & Workflows**.
 
 ## Where I am coming from
 

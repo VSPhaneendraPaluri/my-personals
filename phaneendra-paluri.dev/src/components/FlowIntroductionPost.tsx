@@ -24,7 +24,7 @@ export const FlowIntroductionPost: React.FC<FlowIntroductionPostProps> = ({ acce
 
         <header className="mt-10 border-b border-white/10 pb-10">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-semibold uppercase tracking-[0.18em]">
-            <span style={{ color: accentVals.hex }}>FLOW · Series 1</span>
+            <span style={{ color: accentVals.hex }}>FLOW · Part 1</span>
             <span className="text-neutral-600" aria-hidden="true">·</span>
             <time dateTime={flowIntroductionPost.publishedAt} className="text-neutral-500">
               {formatPostDate(flowIntroductionPost.publishedAt)}
@@ -47,6 +47,9 @@ export const FlowIntroductionPost: React.FC<FlowIntroductionPostProps> = ({ acce
           </p>
           <p>
             This post introduces <strong className="text-white">FLOW</strong>, a hobby project to build a framework for those tools, driven by a grammar. It is the first in a series.
+          </p>
+          <p>
+            <strong className="text-white">FLOW</strong> stands for <strong className="text-white">Framework for Instruction Orchestration &amp; Workflows</strong>.
           </p>
         </div>
 

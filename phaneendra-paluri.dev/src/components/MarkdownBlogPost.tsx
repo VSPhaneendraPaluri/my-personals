@@ -10,10 +10,18 @@ interface MarkdownBlogPostProps {
 }
 
 const renderInlineMarkdown = (text: string, keyPrefix: string): React.ReactNode[] => {
-  const tokens = text.split(/(\[[^\]]+\]\([^)]+\)|\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g);
+  const tokens = text.split(/(!\[[^\]]*\]\([^)]+\)|\[[^\]]+\]\([^)]+\)|\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g);
 
   return tokens.map((token, index) => {
     const key = `${keyPrefix}-${index}`;
+    const image = token.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+    if (image) {
+      const [, alt, src] = image;
+      const isSafeImage = /^\/(?!\/)|^https?:\/\//i.test(src);
+      return isSafeImage
+        ? <img key={key} src={src} alt={alt} loading="lazy" className="my-8 block h-auto w-full rounded-2xl border border-white/10" />
+        : token;
+    }
     const link = token.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
     if (link) {
       const [, label, href] = link;
