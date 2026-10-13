@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="590" viewBox="0 0 1200 590" role="img" aria-labelledby="title desc">
+  <title id="title">How an illegal test becomes a false RTL failure</title>
+  <desc id="desc">A mistaken assumption is copied into tests, a comparison fails, engineers spend time debugging the RTL, then discover the test violated the architecture.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#101a2c"/>
+      <stop offset="1" stop-color="#111321"/>
+    </linearGradient>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0 10 5 0 10Z" fill="#7689a5"/>
+    </marker>
+    <style>
+      text { font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+      .muted { fill: #9aacc4; }
+    </style>
+  </defs>
+  <rect width="1200" height="590" rx="30" fill="url(#bg)"/>
+  <circle cx="1065" cy="55" r="180" fill="#fb7185" opacity=".045"/>
+  <text x="62" y="65" fill="#f3bd68" font-size="15" font-weight="700" letter-spacing="3">A TYPICAL FALSE-FAILURE PATH</text>
+  <text x="62" y="110" fill="#f3f6fc" font-size="31" font-weight="700">The test looks legal. The debug trail points elsewhere.</text>
+
+  <rect x="58" y="151" width="250" height="292" rx="21" fill="#25263a" stroke="#9c81d8" stroke-width="1.5"/>
+  <circle cx="91" cy="185" r="16" fill="#654b95"/>
+  <text x="91" y="191" fill="#f2eaff" font-size="14" font-weight="700" text-anchor="middle">1</text>
+  <text x="119" y="192" fill="#f3f6fc" font-size="18" font-weight="700">Assumption spreads</text>
+  <text x="82" y="233" class="muted" font-size="14">A legality guess gets copied</text>
+  <text x="82" y="254" class="muted" font-size="14">into multiple tests.</text>
+  <rect x="82" y="281" width="202" height="43" rx="10" fill="#322d46"/>
+  <text x="98" y="308" fill="#ddd1f8" font-size="13" font-weight="600">T1 · T2 · T3</text>
+  <rect x="82" y="336" width="202" height="75" rx="11" fill="#1b2030"/>
+  <text x="98" y="362" fill="#f6c879" font-size="12" font-weight="700">SHARED ASSUMPTION</text>
+  <text x="98" y="387" fill="#d0d8e6" font-size="13">“This register write is legal”</text>
+
+  <path d="M312 297 H337" stroke="#7689a5" stroke-width="2.3" marker-end="url(#arrow)"/>
+  <rect x="347" y="151" width="250" height="292" rx="21" fill="#30242f" stroke="#e38382" stroke-width="1.5"/>
+  <circle cx="380" cy="185" r="16" fill="#98565d"/>
+  <text x="380" y="191" fill="#ffe9e9" font-size="14" font-weight="700" text-anchor="middle">2</text>
+  <text x="408" y="192" fill="#f3f6fc" font-size="18" font-weight="700">Comparison fails</text>
+  <text x="371" y="233" class="muted" font-size="14">The RTL behavior differs</text>
+  <text x="371" y="254" class="muted" font-size="14">from the test's expectation.</text>
+  <rect x="371" y="286" width="202" height="88" rx="12" fill="#211e2b"/>
+  <text x="387" y="313" fill="#aab7ca" font-size="12" font-weight="700">EXPECTED</text>
+  <text x="554" y="313" fill="#aab7ca" font-size="12" font-weight="700" text-anchor="end">ACTUAL</text>
+  <text x="387" y="347" fill="#d9e2ee" font-size="14">register = 0</text>
+  <text x="554" y="347" fill="#ff9c9c" font-size="14" text-anchor="end">mismatch</text>
+  <path d="M461 358 482 337 M482 358 461 337" stroke="#ff8585" stroke-width="3" stroke-linecap="round"/>
+  <text x="371" y="410" fill="#ffa3a3" font-size="13" font-weight="700">FAILURE IS REAL. CAUSE IS UNKNOWN.</text>
+
+  <path d="M601 297 H626" stroke="#7689a5" stroke-width="2.3" marker-end="url(#arrow)"/>
+  <rect x="636" y="151" width="250" height="292" rx="21" fill="#252c3b" stroke="#6f8eb7" stroke-width="1.5"/>
+  <circle cx="669" cy="185" r="16" fill="#486486"/>
+  <text x="669" y="191" fill="#e4f0ff" font-size="14" font-weight="700" text-anchor="middle">3</text>
+  <text x="697" y="192" fill="#f3f6fc" font-size="18" font-weight="700">Debug follows RTL</text>
+  <text x="660" y="233" class="muted" font-size="14">Pipeline traces. Waveforms.</text>
+  <text x="660" y="254" class="muted" font-size="14">Reference comparison.</text>
+  <rect x="660" y="282" width="202" height="103" rx="12" fill="#1a2130"/>
+  <path d="M679 342 H698 L708 320 724 360 739 327 752 343 H777 L789 312 805 356 819 333 843 333" fill="none" stroke="#76a8d8" stroke-width="2.5" stroke-linejoin="round"/>
+  <line x1="679" y1="365" x2="844" y2="365" stroke="#394a61" stroke-width="1"/>
+  <text x="660" y="412" fill="#a9bfdb" font-size="13" font-weight="700">DAYS OF INVESTIGATION</text>
+
+  <path d="M890 297 H915" stroke="#7689a5" stroke-width="2.3" marker-end="url(#arrow)"/>
+  <rect x="925" y="151" width="217" height="292" rx="21" fill="#173333" stroke="#54c8a7" stroke-width="1.7"/>
+  <circle cx="958" cy="185" r="16" fill="#286c5d"/>
+  <text x="958" y="191" fill="#d9fff3" font-size="14" font-weight="700" text-anchor="middle">4</text>
+  <text x="986" y="192" fill="#f3f6fc" font-size="18" font-weight="700">Root cause found</text>
+  <text x="949" y="233" class="muted" font-size="14">The assumption was wrong:</text>
+  <text x="949" y="254" class="muted" font-size="14">the test broke the architecture.</text>
+  <circle cx="1034" cy="326" r="36" fill="#214b42" stroke="#55d5af" stroke-width="2"/>
+  <path d="M1017 326 1029 338 1053 311" fill="none" stroke="#9af0d5" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="1034" y="396" fill="#87e1c4" font-size="13" font-weight="700" text-anchor="middle">TEST WAS ILLEGAL</text>
+  <text x="600" y="508" fill="#f2d28a" font-size="17" font-weight="700" text-anchor="middle">A failing comparison is not proof of an RTL bug.</text>
+  <text x="600" y="543" fill="#899bb4" font-size="14" text-anchor="middle">Duplicated legality assumptions can turn test defects into convincing false alarms.</text>
+</svg>
