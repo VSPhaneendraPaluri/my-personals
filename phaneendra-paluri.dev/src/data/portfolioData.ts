@@ -236,10 +236,10 @@ export const skillCategories: SkillCategory[] = [
   },
   {
     id: "cat-modeling",
-    title: "Architecture & Verification",
+    title: "CPU Architectures & Tooling",
     skills: [
       { name: "CPU architectures", description: "SPARC v8, ARMv8, RISC-V and Renesas V850; cache and interconnect architectural exploration." },
-      { name: "Verification tooling", description: "Instruction Stream Generation, debugger tooling and tests from unit through platform and DV." },
+      { name: "CPU tool development", description: "Sole developer of a SPARC v8 Instruction Stream Generator; also developed debugger tooling and contributed to test strategies." },
       { name: "Bus protocols", description: "AXI4, OCP-IP, APB and Common Bus Architecture; synthesizable SystemC exploration." }
     ]
   },
@@ -261,7 +261,7 @@ export const careerSummary = [
 
 export const domainsOfInterest = [
   "SoC & processor modelling",
-  "CPU architectures & verification",
+  "CPU architectures & tooling",
   "SystemC / TLM-2",
   "Embedded systems, robotics & computer vision"
 ];
