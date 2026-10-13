@@ -2,7 +2,7 @@
 publishedAt: 2026-10-13
 topicId: isg
 seriesLabel: FLOW · Part 2
-excerpt: Who should own architectural legality in an instruction-stream flow? A practical separation of architecture knowledge, test intent and test construction, with an independent simulator as a cross-check.
+excerpt: Who should own architectural legality in an instruction-stream flow? A practical separation of architecture knowledge, test intent and test construction.
 ---
 
 # Who Owns “Legal”? Separating Architecture Knowledge from Test Intent
@@ -29,7 +29,7 @@ The distinction is not about job titles or organizational boundaries. One person
 
 ![Three responsibilities in an instruction-generation flow: architectural legality surrounds test intent, while an independent simulator cross-checks it.](/images/blogposts/flow-ownership-boundaries.svg)
 
-The tests sit inside the architecture boundary: test intent selects what to explore, but it does not get to redefine what is legal. The simulator is shown separately because it should not simply inherit the generator's view of legality.
+The tests sit inside the architecture boundary: test intent selects what to explore, but it does not get to redefine what is legal. The simulator is outside that boundary because it represents a separate cross-checking idea, not a component of FLOW.
 
 ## What happens to the zero-register example?
 
@@ -45,7 +45,7 @@ The important difference is intent. A negative test is not a hole in the legalit
 
 ## A simulator should be a cross-check, not an echo
 
-The generator must avoid accidental violations; the simulator must decide whether an executed instruction is architecturally valid and what it does. Keeping their models distinct gives the flow a chance to catch disagreement.
+In a verification setup that uses both a generator and a simulator, the generator must avoid accidental violations while the simulator decides whether an executed instruction is architecturally valid and what it does. Keeping their models distinct can expose disagreement.
 
 But “independent” needs qualification. Two separate codebases do not guarantee two independent checks. If one person reads the specification once, misunderstands a sentence, and implements that same misunderstanding in both places, the models can agree and still be wrong.
 
@@ -53,13 +53,13 @@ The stronger approach is **two separate readings of the specification**, followe
 
 ![Two separate readings of the specification inform independent generator and simulator models, whose outcomes are compared.](/images/blogposts/flow-independent-cross-check.svg)
 
-This supplements, rather than replaces, architectural review and conformance testing.
+This is a general verification consideration, separate from the FLOW series, and supplements rather than replaces architectural review and conformance testing.
 
 ## Is the separation itself unique?
 
 No—and it would be a mistake to claim otherwise. Model-based instruction generators and other verification flows have long separated an architectural model from the scenarios or templates that use it. Genesys-Pro is one example often cited in this area; its history and exact capabilities are worth checking against the original publications before making more detailed claims. Constrained-random generators, portable-stimulus approaches and executable architecture models also place boundaries between architectural knowledge and test intent, though they do so in different ways and at different levels.
 
-The division of responsibility is a design choice, not a new invention. FLOW explores a particular combination: readable test intent, architecture integration through plain C++ rather than a separate description language, and a separate simulator model for cross-checking. C++ hooks fit a familiar toolchain and avoid another language, while declarative descriptions can be easier to analyse and reuse across tools.
+The division of responsibility is a design choice, not a new invention. FLOW explores a particular combination: readable test intent and architecture integration through plain C++ rather than a separate description language. Independent simulator models are a broader verification practice discussed here for context, not a FLOW feature or a subject of this series. C++ hooks fit a familiar toolchain and avoid another language, while declarative descriptions can be easier to analyse and reuse across tools.
 
 The names and boundaries are also choices. An architecture team may prefer an architecture-model-plus-templates structure; another flow may put more responsibility in the generator. What matters is being deliberate about who owns each fact, and being able to tell whether a failure came from the design, the test intent or the architecture model.
 
