@@ -72,10 +72,8 @@ export const InspirationsSection: React.FC<InspirationsSectionProps> = ({ accent
           </div>
 
           <div
+            data-card-theme="inspiration"
             className="spotlight-card relative rounded-[2rem] overflow-hidden p-5 sm:p-8 min-h-[320px] sm:min-h-[390px] flex items-center justify-center"
-            style={{
-              background: `radial-gradient(ellipse at 50% 45%, rgba(${accentVals.rgb}, 0.13), rgba(18, 18, 24, 0.88) 68%)`,
-            }}
           >
             <div className="absolute top-5 left-5 flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] text-neutral-500 font-mono">
               <Activity className="w-3.5 h-3.5" style={{ color: accentVals.hex }} />
@@ -143,7 +141,7 @@ export const InspirationsSection: React.FC<InspirationsSectionProps> = ({ accent
             style={{ borderColor: `rgba(${accentVals.rgb}, 0.3)` }}
           />
           {inspirationTopics.map(({ icon: Icon, title, text }, index) => (
-            <article key={title} className="spotlight-card relative rounded-3xl p-6 sm:p-8 pt-7">
+            <article key={title} data-card-theme="inspiration" className="spotlight-card relative rounded-3xl p-6 sm:p-8 pt-7">
               <div className="relative z-10 flex items-center gap-3 mb-6">
                 <div
                   className="w-11 h-11 rounded-2xl flex items-center justify-center border"

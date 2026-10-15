@@ -16,11 +16,74 @@
 /* Glassmorphism card with dynamic radial hover highlight based on cursor movement */
 .spotlight-card {
   position: relative;
-  background: rgba(18, 18, 24, 0.75);
+  background-image:
+    var(--card-pattern, none),
+    radial-gradient(ellipse at 12% 0%, rgba(var(--card-tint, 148, 163, 184), 0.14), transparent 58%),
+    linear-gradient(145deg, rgba(var(--card-tint, 148, 163, 184), 0.07), rgba(18, 18, 24, 0.9) 68%);
+  background-color: rgba(18, 18, 24, 0.75);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.08);
   transition: border-color 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+}
+
+.spotlight-card[data-card-theme="systems"],
+.spotlight-card[data-card-theme="hardware"] {
+  --card-tint: 52, 211, 153;
+  --card-pattern:
+    radial-gradient(circle at 24px 24px, rgba(52, 211, 153, 0.26) 0 1px, transparent 1.7px),
+    linear-gradient(90deg, transparent 23px, rgba(52, 211, 153, 0.12) 24px, transparent 25px),
+    linear-gradient(transparent 23px, rgba(52, 211, 153, 0.12) 24px, transparent 25px);
+  background-size: 48px 48px, 48px 48px, 48px 48px, auto, auto;
+}
+
+.spotlight-card[data-card-theme="writing"] {
+  --card-tint: 96, 165, 250;
+  --card-pattern:
+    linear-gradient(90deg, transparent 0 30px, rgba(96, 165, 250, 0.16) 30px 31px, transparent 31px),
+    repeating-linear-gradient(0deg, transparent 0 27px, rgba(96, 165, 250, 0.11) 27px 28px, transparent 28px 29px);
+  background-size: auto, auto, auto, auto;
+}
+
+.spotlight-card[data-card-theme="education"] {
+  --card-tint: 52, 211, 153;
+  --card-pattern: repeating-linear-gradient(135deg, transparent 0 17px, rgba(52, 211, 153, 0.09) 17px 18px, transparent 18px 36px);
+}
+
+.spotlight-card[data-card-theme="code"],
+.spotlight-card[data-card-theme="expertise"] {
+  --card-tint: 34, 211, 238;
+  --card-pattern:
+    linear-gradient(rgba(34, 211, 238, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34, 211, 238, 0.1) 1px, transparent 1px);
+  background-size: 28px 28px, 28px 28px, auto, auto;
+}
+
+.spotlight-card[data-card-theme="blueprint"] {
+  --card-tint: 167, 139, 250;
+  --card-pattern:
+    linear-gradient(rgba(167, 139, 250, 0.13) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(167, 139, 250, 0.13) 1px, transparent 1px),
+    linear-gradient(rgba(167, 139, 250, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(167, 139, 250, 0.07) 1px, transparent 1px);
+  background-size: 32px 32px, 32px 32px, 8px 8px, 8px 8px, auto, auto;
+}
+
+.spotlight-card[data-card-theme="inspiration"] {
+  --card-tint: 167, 139, 250;
+  --card-pattern: repeating-linear-gradient(135deg, transparent 0 21px, rgba(167, 139, 250, 0.1) 21px 22px, transparent 22px 44px);
+}
+
+.spotlight-card[data-card-theme="career"],
+.spotlight-card[data-card-theme="contact"] {
+  --card-tint: 251, 146, 60;
+  --card-pattern: repeating-linear-gradient(0deg, transparent 0 35px, rgba(251, 146, 60, 0.08) 35px 36px, transparent 36px 72px);
+}
+
+.spotlight-card[data-card-theme="milestone"],
+.spotlight-card[data-card-theme="conference"] {
+  --card-tint: 250, 204, 21;
+  --card-pattern: repeating-linear-gradient(135deg, transparent 0 23px, rgba(250, 204, 21, 0.09) 23px 24px, transparent 24px 48px);
 }
 
 .spotlight-card::before {

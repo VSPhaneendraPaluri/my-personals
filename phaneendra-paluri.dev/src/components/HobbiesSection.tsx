@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowUpRight, Code2, Cpu, Github, Radio, Sparkles, Star } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, BookOpenText, Code2, Cpu, Github, Radio, Sparkles, Star } from 'lucide-react';
 import { PastimeItem, ThemeAccent } from '../types/portfolio';
 import { getAccentValues } from './CursorSpotlight';
+import { blogPosts, formatPostDate } from '../data/blogPosts';
 
 type HobbiesTab = 'bare-metals' | 'labs' | 'blueprints';
 
@@ -37,6 +38,9 @@ const labProjects = [
     pagesUrl: 'https://vsphaneendrapaluri.github.io/decoding-gxx/'
   }
 ];
+
+const flowPosts = blogPosts.filter(({ seriesLabel }) => seriesLabel.startsWith('FLOW ·'));
+const featuredFlowPosts = flowPosts.slice(0, 3);
 
 const tabs: { id: HobbiesTab; label: string }[] = [
   { id: 'bare-metals', label: 'My Bare-Metals' },
@@ -183,6 +187,7 @@ export const HobbiesSection: React.FC<HobbiesSectionProps> = ({ pastimes, accent
                   {pastimes.map((pastime, index) => (
                     <article
                       key={pastime.id}
+                      data-card-theme="hardware"
                       className="spotlight-card group overflow-hidden rounded-2xl transition-transform duration-300 hover:-translate-y-1"
                     >
                       <div className="relative aspect-[4/3] overflow-hidden bg-neutral-900">
@@ -221,6 +226,7 @@ export const HobbiesSection: React.FC<HobbiesSectionProps> = ({ pastimes, accent
                   {labProjects.map((project) => (
                     <article
                       key={project.name}
+                      data-card-theme="code"
                       className="spotlight-card group flex min-h-48 flex-col rounded-2xl p-5 transition-transform hover:-translate-y-1"
                     >
                       <div className="flex items-start justify-between gap-4">
@@ -264,6 +270,78 @@ export const HobbiesSection: React.FC<HobbiesSectionProps> = ({ pastimes, accent
                       </div>
                     </article>
                   ))}
+                </div>
+              </>
+            ) : id === 'blueprints' ? (
+              <>
+                <div className="mb-6 flex items-center gap-3 border-b border-white/10 pb-4">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04]" style={{ color: accentVals.hex }}>
+                    <BookOpenText className="h-5 w-5" />
+                  </span>
+                  <div>
+                    <h2 className="text-lg font-bold text-white font-display">My Blueprints</h2>
+                    <p className="mt-0.5 text-xs text-neutral-500">
+                      Projects and the ideas, decisions, and write-ups behind them
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+                  <article data-card-theme="blueprint" className="spotlight-card flex flex-col rounded-2xl p-5 sm:p-6">
+                    <div className="flex items-start justify-between gap-4">
+                      <span
+                        className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] font-display text-sm font-bold"
+                        style={{ color: accentVals.hex }}
+                      >
+                        F
+                      </span>
+                      <span className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs text-neutral-400">
+                        {flowPosts.length} related {flowPosts.length === 1 ? 'post' : 'posts'}
+                      </span>
+                    </div>
+                    <h3 className="mt-5 font-display text-xl font-bold text-white">FLOW</h3>
+                    <p className="mt-2 text-sm leading-6 text-neutral-400">
+                      Framework for Instruction Orchestration &amp; Workflows — a grammar-driven approach to describing test intent and generating instruction streams for CPU verification.
+                    </p>
+
+                    <div className="mt-5 border-t border-white/10 pt-4">
+                      <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                        From the project
+                      </h4>
+                      <ul className="space-y-2.5">
+                        {featuredFlowPosts.map((post) => (
+                          <li key={post.slug}>
+                            <a
+                              href={post.slug}
+                              className="group/link flex items-start justify-between gap-3 rounded-lg text-sm text-neutral-300 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                            >
+                              <span>
+                                <span className="block leading-5">{post.title}</span>
+                                <time dateTime={post.publishedAt} className="mt-1 block text-xs text-neutral-500">
+                                  {formatPostDate(post.publishedAt)}
+                                </time>
+                              </span>
+                              <ArrowRight
+                                className="mt-0.5 h-4 w-4 shrink-0 transition-transform group-hover/link:translate-x-1"
+                                style={{ color: accentVals.hex }}
+                                aria-hidden="true"
+                              />
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    {flowPosts.length > 0 && (
+                      <a
+                        href="/blogs?series=FLOW"
+                        className="mt-4 inline-flex items-center gap-2 self-start text-sm font-semibold transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                        style={{ color: accentVals.hex }}
+                      >
+                        View all {flowPosts.length} FLOW posts
+                        <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                      </a>
+                    )}
+                  </article>
                 </div>
               </>
             ) : (

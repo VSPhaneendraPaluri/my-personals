@@ -150,7 +150,7 @@ export const CVSection: React.FC<CVSectionProps> = ({
                 const isExpanded = expandedExperienceId === experience.id;
                 const detailsId = `experience-details-${experience.id}`;
                 return (
-                  <article key={experience.id} data-expanded={isExpanded} className="spotlight-card experience-card relative rounded-2xl p-5 sm:ml-10 sm:p-7">
+                  <article key={experience.id} data-card-theme="career" data-expanded={isExpanded} className="spotlight-card experience-card relative rounded-2xl p-5 sm:ml-10 sm:p-7">
                     <span
                       className="experience-marker absolute -left-[2.78rem] top-8 hidden h-4 w-4 rounded-full border-[3px] border-neutral-950 sm:block"
                       style={{ backgroundColor: accentVals.hex, boxShadow: `0 0 20px rgba(${accentVals.rgb}, 0.45)` }}
@@ -221,7 +221,7 @@ export const CVSection: React.FC<CVSectionProps> = ({
             {skillCategories.map((category, index) => {
               const Icon = [Cpu, Layers, Code2][index % 3];
               return (
-                <article key={category.id} className="spotlight-card rounded-2xl p-6 sm:p-7">
+                <article key={category.id} data-card-theme="expertise" className="spotlight-card rounded-2xl p-6 sm:p-7">
                   <div className="mb-5 flex items-start justify-between gap-4">
                     <div>
                       <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04]" style={{ color: accentVals.hex }}>
@@ -248,7 +248,7 @@ export const CVSection: React.FC<CVSectionProps> = ({
         {activeTab === 'education' && (
           <div className="grid gap-4 md:grid-cols-2">
             {educations.map((education, index) => (
-              <article key={education.id} className="spotlight-card rounded-2xl p-6 sm:p-8">
+              <article key={education.id} data-card-theme="education" className="spotlight-card rounded-2xl p-6 sm:p-8">
                 <div className="mb-5 flex items-start justify-between gap-4">
                   <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04]" style={{ color: accentVals.hex }}>
                     <GraduationCap className="h-5 w-5" />
@@ -280,7 +280,7 @@ export const CVSection: React.FC<CVSectionProps> = ({
         {activeTab === 'conferences' && (
           <div className="grid gap-4 lg:grid-cols-3">
             {conferences.map((conference) => (
-              <article key={conference.id} className="spotlight-card flex flex-col rounded-2xl p-6">
+              <article key={conference.id} data-card-theme="conference" className="spotlight-card flex flex-col rounded-2xl p-6">
                 <div className="mb-5 flex items-center justify-between">
                   <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04]" style={{ color: accentVals.hex }}>
                     <Presentation className="h-5 w-5" />

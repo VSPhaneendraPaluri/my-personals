@@ -12,6 +12,9 @@ export const BlogsSection: React.FC<BlogsSectionProps> = ({ accent }) => {
   const accentVals = getAccentValues(accent);
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [selectedArchive, setSelectedArchive] = useState<string | null>(null);
+  const [selectedSeries, setSelectedSeries] = useState<string | null>(() =>
+    new URLSearchParams(window.location.search).get('series') === 'FLOW' ? 'FLOW' : null,
+  );
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
 
   const archives = useMemo(
@@ -21,6 +24,7 @@ export const BlogsSection: React.FC<BlogsSectionProps> = ({ accent }) => {
   const filteredPosts = useMemo(
     () =>
       blogPosts
+        .filter((post) => !selectedSeries || post.seriesLabel.startsWith(`${selectedSeries} ·`))
         .filter((post) => !selectedTopic || post.topicId === selectedTopic)
         .filter((post) => !selectedArchive || post.publishedAt.startsWith(selectedArchive))
         .sort((a, b) =>
@@ -28,7 +32,7 @@ export const BlogsSection: React.FC<BlogsSectionProps> = ({ accent }) => {
             ? b.publishedAt.localeCompare(a.publishedAt)
             : a.publishedAt.localeCompare(b.publishedAt),
         ),
-    [selectedArchive, selectedTopic, sortOrder],
+    [selectedArchive, selectedSeries, selectedTopic, sortOrder],
   );
 
   return (
@@ -49,6 +53,21 @@ export const BlogsSection: React.FC<BlogsSectionProps> = ({ accent }) => {
 
         <div className="mt-14 grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_18rem]">
           <div>
+            {selectedSeries && (
+              <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3">
+                <p className="text-sm text-neutral-300">
+                  Showing posts in the <span className="font-semibold text-white">{selectedSeries}</span> series
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setSelectedSeries(null)}
+                  className="text-sm font-semibold transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                  style={{ color: accentVals.hex }}
+                >
+                  Show all posts
+                </button>
+              </div>
+            )}
             <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
               <h2 className="font-display text-2xl font-bold text-white">Posts</h2>
               <span className="text-sm text-neutral-500" aria-live="polite">
@@ -63,6 +82,7 @@ export const BlogsSection: React.FC<BlogsSectionProps> = ({ accent }) => {
                   <a
                     key={post.slug}
                     href={post.slug}
+                    data-card-theme="writing"
                     className="spotlight-card group block rounded-3xl p-7 transition-transform hover:-translate-y-1 sm:p-9"
                   >
                     <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
@@ -111,7 +131,7 @@ export const BlogsSection: React.FC<BlogsSectionProps> = ({ accent }) => {
           </div>
 
           <aside className="space-y-4" aria-label="Filter posts">
-            <section className="spotlight-card rounded-2xl p-5 sm:p-6" aria-labelledby="topics-heading">
+            <section data-card-theme="writing" className="spotlight-card rounded-2xl p-5 sm:p-6" aria-labelledby="topics-heading">
               <div className="mb-4 flex items-center gap-2">
                 <ListFilter className="h-4 w-4" style={{ color: accentVals.hex }} aria-hidden="true" />
                 <h2 id="topics-heading" className="font-display text-lg font-bold text-white">Topics</h2>
@@ -148,7 +168,7 @@ export const BlogsSection: React.FC<BlogsSectionProps> = ({ accent }) => {
               </nav>
             </section>
 
-            <section className="spotlight-card rounded-2xl p-5 sm:p-6" aria-labelledby="date-heading">
+            <section data-card-theme="writing" className="spotlight-card rounded-2xl p-5 sm:p-6" aria-labelledby="date-heading">
               <div className="mb-4 flex items-center gap-2">
                 <CalendarDays className="h-4 w-4" style={{ color: accentVals.hex }} aria-hidden="true" />
                 <h2 id="date-heading" className="font-display text-lg font-bold text-white">By date</h2>

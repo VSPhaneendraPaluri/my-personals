@@ -71,6 +71,7 @@ export const LatestFeeds: React.FC<LatestFeedsProps> = ({ accent }) => {
       >
         <a
           href={activePost.slug}
+          data-card-theme="writing"
           className="spotlight-card group block rounded-2xl p-4 transition-transform hover:-translate-y-0.5 sm:p-5"
         >
           <div className="flex items-start gap-3">

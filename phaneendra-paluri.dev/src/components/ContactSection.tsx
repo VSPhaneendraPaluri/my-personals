@@ -86,7 +86,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ profile, accent 
           <div className="lg:col-span-5 flex flex-col justify-between space-y-6">
             
             {/* Glass Info Card with spotlight hover */}
-            <div className="spotlight-card rounded-3xl p-6 sm:p-8 flex flex-col justify-between h-full">
+            <div data-card-theme="contact" className="spotlight-card rounded-3xl p-6 sm:p-8 flex flex-col justify-between h-full">
               <div>
                 <div className="flex items-center justify-between pb-6 border-b border-white/10">
                   <div className="flex items-center gap-2">
@@ -197,7 +197,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ profile, accent 
 
           {/* Right Column: Interactive Glassmorphism Message Form */}
           <div className="lg:col-span-7">
-            <div className="spotlight-card rounded-3xl p-6 sm:p-10 border border-white/10 shadow-2xl relative">
+            <div data-card-theme="contact" className="spotlight-card rounded-3xl p-6 sm:p-10 border border-white/10 shadow-2xl relative">
               <h3 className="text-xl sm:text-2xl font-bold text-white font-display">
                 Dispatch an Encrypted Message
               </h3>

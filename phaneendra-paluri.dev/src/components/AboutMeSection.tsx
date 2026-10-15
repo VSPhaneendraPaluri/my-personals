@@ -92,6 +92,7 @@ export const AboutMeSection: React.FC<AboutMeSectionProps> = ({ profile, accent 
               ref={cardRef}
               onMouseMove={handleCardMouseMove}
               onMouseLeave={handleCardMouseLeave}
+              data-card-theme="systems"
               className="spotlight-card rounded-3xl p-3.5 sm:p-4 w-full max-w-md shadow-2xl transition-transform duration-200 ease-out will-change-transform group cursor-pointer"
               style={{
                 transform: `perspective(1000px) rotateX(${tilt.rotateX}deg) rotateY(${tilt.rotateY}deg)`,
@@ -175,6 +176,7 @@ export const AboutMeSection: React.FC<AboutMeSectionProps> = ({ profile, accent 
             {profile.expertiseHighlights.map((highlight) => (
               <div
                 key={highlight.label}
+                data-card-theme="expertise"
                 className="spotlight-card flex min-h-48 flex-col rounded-2xl p-5 transition-transform hover:-translate-y-1"
               >
                 <div className="flex min-h-10 items-start text-sm font-semibold text-neutral-200">

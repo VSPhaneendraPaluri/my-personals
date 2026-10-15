@@ -41,6 +41,7 @@ export const TriumphsSection: React.FC<TriumphsSectionProps> = ({ institutions, 
               <a
                 key={institution.id}
                 href={institution.link}
+                data-card-theme="milestone"
                 target="_blank"
                 rel="noreferrer"
                 className="spotlight-card group flex min-h-36 items-center gap-5 rounded-2xl p-5 transition-transform hover:-translate-y-0.5 sm:p-6"
