@@ -56,7 +56,7 @@ export const experiences: ExperienceItem[] = [
     id: "exp-vayavya",
     company: "Vayavya Labs Pvt. Ltd.",
     location: "Fully remote · Phillipsburg, New Jersey, USA",
-    roles: [{ title: "Consultant – Architect (Contract)", period: "Mar 2023 – Feb 2025" }],
+    roles: [{ title: "Consultant – Architect (Contract)", period: "Mar 2023 – Feb 2024" }],
     categories: [
       {
         title: "Functional models & peripheral systems",
@@ -313,24 +313,28 @@ export const pastimes: PastimeItem[] = [
     id: "blueboard-atmega",
     name: "BlueBoard ATMega Board",
     image: blueBoardAtmega,
-    imageAlt: "BlueBoard ATMega development board"
+    imageAlt: "BlueBoard ATMega development board",
+    focus: "AVR microcontroller"
   },
   {
     id: "blueboard-lpc2148",
     name: "BlueBoard LPC2148 Board",
     image: blueBoardLpc2148,
-    imageAlt: "BlueBoard LPC2148 development board"
+    imageAlt: "BlueBoard LPC2148 development board",
+    focus: "ARM7 development"
   },
   {
     id: "triaxial-accelerometer",
     name: "Tri-axial Accelerometer",
     image: triaxialAccelerometer,
-    imageAlt: "Tri-axial accelerometer module"
+    imageAlt: "Tri-axial accelerometer module",
+    focus: "Motion sensing"
   },
   {
     id: "gps-receiver",
     name: "GPS Receiver Module",
     image: gpsReceiver,
-    imageAlt: "GPS receiver module"
+    imageAlt: "GPS receiver module",
+    focus: "Satellite navigation"
   }
 ];

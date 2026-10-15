@@ -107,7 +107,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ profile, accent 
                     </span>
                     <button
                       onClick={handleCopyEmail}
-                      className="p-2 rounded-xl text-neutral-300 hover:text-white bg-white/5 hover:bg-white/10 transition-colors shrink-0"
+                      className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-xl p-2 text-neutral-300 hover:text-white bg-white/5 hover:bg-white/10 transition-colors"
                       title="Copy to clipboard"
                     >
                       {copied ? (
@@ -160,7 +160,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ profile, accent 
                     href={profile.github}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium bg-white/5 hover:bg-white/10 text-neutral-200 hover:text-white border border-white/10 transition-colors"
+                    className="flex min-h-11 items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium bg-white/5 hover:bg-white/10 text-neutral-200 hover:text-white border border-white/10 transition-colors"
                   >
                     <Github className="w-4 h-4" />
                     <span>GitHub</span>
@@ -171,7 +171,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ profile, accent 
                     href={profile.linkedin}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium bg-white/5 hover:bg-white/10 text-neutral-200 hover:text-white border border-white/10 transition-colors"
+                    className="flex min-h-11 items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium bg-white/5 hover:bg-white/10 text-neutral-200 hover:text-white border border-white/10 transition-colors"
                   >
                     <Linkedin className="w-4 h-4" />
                     <span>LinkedIn</span>
@@ -182,7 +182,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ profile, accent 
                     href={profile.twitter}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium bg-white/5 hover:bg-white/10 text-neutral-200 hover:text-white border border-white/10 transition-colors"
+                    className="flex min-h-11 items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium bg-white/5 hover:bg-white/10 text-neutral-200 hover:text-white border border-white/10 transition-colors"
                   >
                     <span className="font-bold text-xs">𝕏</span>
                     <span>Twitter / X</span>
@@ -284,7 +284,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ profile, accent 
                     <button
                       type="submit"
                       disabled={status === 'sending'}
-                      className="px-6 py-3 rounded-xl text-xs sm:text-sm font-semibold text-neutral-950 transition-all duration-200 active:scale-95 flex items-center gap-2 shadow-lg disabled:opacity-50"
+                      className="min-h-11 px-6 py-3 rounded-xl text-xs sm:text-sm font-semibold text-neutral-950 transition-all duration-200 active:scale-95 flex items-center gap-2 shadow-lg disabled:opacity-50"
                       style={{ backgroundColor: accentVals.hex }}
                     >
                       {status === 'sending' ? (

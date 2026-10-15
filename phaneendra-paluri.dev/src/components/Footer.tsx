@@ -35,7 +35,7 @@ export const Footer: React.FC<FooterProps> = ({ profile, accent }) => {
             href={profile.github}
             target="_blank"
             rel="noreferrer"
-            className="p-2 rounded-lg text-neutral-400 hover:text-white transition-colors"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg p-2 text-neutral-400 hover:text-white transition-colors"
             aria-label="GitHub"
           >
             <Github className="w-4 h-4" />
@@ -44,14 +44,14 @@ export const Footer: React.FC<FooterProps> = ({ profile, accent }) => {
             href={profile.linkedin}
             target="_blank"
             rel="noreferrer"
-            className="p-2 rounded-lg text-neutral-400 hover:text-white transition-colors"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg p-2 text-neutral-400 hover:text-white transition-colors"
             aria-label="LinkedIn"
           >
             <Linkedin className="w-4 h-4" />
           </a>
           <a
             href={`mailto:${profile.email}`}
-            className="p-2 rounded-lg text-neutral-400 hover:text-white transition-colors"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg p-2 text-neutral-400 hover:text-white transition-colors"
             aria-label="Email"
           >
             <Mail className="w-4 h-4" />
@@ -59,7 +59,7 @@ export const Footer: React.FC<FooterProps> = ({ profile, accent }) => {
 
           <button
             onClick={scrollToTop}
-            className="p-2 rounded-lg text-neutral-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors ml-2"
+            className="ml-2 inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg p-2 text-neutral-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors"
             title="Scroll to top"
             aria-label="Back to top"
           >

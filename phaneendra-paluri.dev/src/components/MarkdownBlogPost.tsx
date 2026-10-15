@@ -151,7 +151,7 @@ export const MarkdownBlogPost: React.FC<MarkdownBlogPostProps> = ({ post, accent
       <div className="mx-auto max-w-4xl px-6 sm:px-8">
         <a
           href="/blogs"
-          className="inline-flex items-center gap-2 text-sm font-semibold text-neutral-400 transition-colors hover:text-white"
+          className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-neutral-400 transition-colors hover:text-white"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           All posts

@@ -57,7 +57,7 @@ export const LatestFeeds: React.FC<LatestFeedsProps> = ({ accent }) => {
         </h2>
         <a
           href="/blogs"
-          className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-neutral-400 transition-colors hover:text-white"
+          className="inline-flex min-h-11 shrink-0 items-center gap-1 text-sm font-medium text-neutral-400 transition-colors hover:text-white"
         >
           All posts
           <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -108,12 +108,16 @@ export const LatestFeeds: React.FC<LatestFeedsProps> = ({ accent }) => {
                 onClick={() => setActivePostIndex(index)}
                 aria-label={`Show post ${index + 1}: ${post.title}`}
                 aria-current={activePostIndex === index ? 'true' : undefined}
-                className="h-2 rounded-full transition-all"
-                style={{
-                  width: activePostIndex === index ? '1.5rem' : '0.5rem',
-                  backgroundColor: activePostIndex === index ? accentVals.hex : 'rgba(255,255,255,0.3)',
-                }}
-              />
+                className="inline-flex h-11 w-11 items-center justify-center"
+              >
+                <span
+                  className="h-2 rounded-full transition-all"
+                  style={{
+                    width: activePostIndex === index ? '1.5rem' : '0.5rem',
+                    backgroundColor: activePostIndex === index ? accentVals.hex : 'rgba(255,255,255,0.3)',
+                  }}
+                />
+              </button>
             ))}
           </div>
           <div className="flex items-center gap-1">
@@ -121,7 +125,7 @@ export const LatestFeeds: React.FC<LatestFeedsProps> = ({ accent }) => {
               type="button"
               onClick={showPreviousPost}
               aria-label="Previous post"
-              className="rounded-lg p-2 text-neutral-400 transition-colors hover:bg-white/10 hover:text-white"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg p-2 text-neutral-400 transition-colors hover:bg-white/10 hover:text-white"
             >
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
             </button>
@@ -129,7 +133,7 @@ export const LatestFeeds: React.FC<LatestFeedsProps> = ({ accent }) => {
               type="button"
               onClick={() => setAutoplayEnabled((enabled) => !enabled)}
               aria-label={autoplayEnabled ? 'Pause automatic post rotation' : 'Resume automatic post rotation'}
-              className="rounded-lg p-2 text-neutral-400 transition-colors hover:bg-white/10 hover:text-white"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg p-2 text-neutral-400 transition-colors hover:bg-white/10 hover:text-white"
             >
               {autoplayEnabled
                 ? <Pause className="h-4 w-4" aria-hidden="true" />
@@ -139,7 +143,7 @@ export const LatestFeeds: React.FC<LatestFeedsProps> = ({ accent }) => {
               type="button"
               onClick={showNextPost}
               aria-label="Next post"
-              className="rounded-lg p-2 text-neutral-400 transition-colors hover:bg-white/10 hover:text-white"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg p-2 text-neutral-400 transition-colors hover:bg-white/10 hover:text-white"
             >
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </button>

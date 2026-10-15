@@ -3,6 +3,11 @@ publishedAt: 2026-10-13
 topicId: isg
 seriesLabel: FLOW · Part 2
 excerpt: Who should own architectural legality in an instruction-stream flow? A practical separation of architecture knowledge, test intent and test construction.
+linkedinUrl: https://www.linkedin.com/posts/pvsphaneendra_flow-isg-share-7515837822705246208-nNv_/
+linkedinType: post
+linkedinLikes:
+linkedinComments:
+linkedinReposts:
 ---
 
 # Who Owns “Legal”? Separating Architecture Knowledge from Test Intent

@@ -3,6 +3,11 @@ publishedAt: 2026-10-11
 topicId: isg
 seriesLabel: FLOW · Part 1
 excerpt: A hobby project on grammar-driven instruction stream generation for CPU verification, and an exploration of how test intent can live outside the generator.
+linkedinUrl: https://www.linkedin.com/posts/pvsphaneendra_sideproject-systems-cplusplus-share-7515018458825256960-t95o/
+linkedinType: post
+linkedinLikes:
+linkedinComments:
+linkedinReposts:
 ---
 
 # Teaching Grammar to Generate Instructions: Introducing FLOW

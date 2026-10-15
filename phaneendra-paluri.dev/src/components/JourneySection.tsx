@@ -41,7 +41,7 @@ export const JourneySection: React.FC<JourneySectionProps> = ({ institutions, ac
                 key={id}
                 onClick={() => setActiveTab(id)}
                 aria-pressed={selected}
-                className={`flex min-w-fit items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold transition-all sm:text-sm ${
+                className={`flex min-h-11 min-w-fit items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold transition-all sm:text-sm ${
                   selected ? 'bg-neutral-800 text-white shadow-lg ring-1 ring-white/15' : 'text-neutral-400 hover:text-white'
                 }`}
                 style={selected ? { boxShadow: `inset 0 -2px 0 ${accentVals.hex}` } : undefined}

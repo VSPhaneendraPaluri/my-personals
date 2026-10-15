@@ -82,7 +82,7 @@ export const ResumeModal: React.FC<ResumeModalProps> = ({
       <div className="relative w-full max-w-4xl bg-neutral-900 border border-white/15 rounded-3xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden">
         
         {/* Top Action Bar */}
-        <div className="p-4 sm:p-5 border-b border-white/10 flex items-center justify-between bg-neutral-950/80 backdrop-blur-md">
+        <div className="p-4 sm:p-5 border-b border-white/10 flex flex-col gap-3 bg-neutral-950/80 backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
             <span className="text-xs font-semibold uppercase tracking-wider text-neutral-400">
               Curriculum Vitae Preview
@@ -95,7 +95,7 @@ export const ResumeModal: React.FC<ResumeModalProps> = ({
           <div className="flex items-center gap-2">
             <button
               onClick={handleCopyMarkdown}
-              className="px-3 py-1.5 rounded-lg text-xs font-medium text-neutral-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-colors flex items-center gap-1.5"
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 text-xs font-medium text-neutral-300 transition-colors hover:bg-white/10 hover:text-white"
               title="Copy as Markdown"
             >
               {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
@@ -104,7 +104,7 @@ export const ResumeModal: React.FC<ResumeModalProps> = ({
 
             <button
               onClick={handlePrint}
-              className="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-neutral-950 transition-colors flex items-center gap-1.5 shadow"
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-3.5 text-xs font-semibold text-neutral-950 transition-colors shadow"
               style={{ backgroundColor: accentVals.hex }}
             >
               <Printer className="w-3.5 h-3.5" />
@@ -113,7 +113,7 @@ export const ResumeModal: React.FC<ResumeModalProps> = ({
 
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg text-neutral-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors ml-1"
+              className="ml-1 inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-neutral-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors"
               aria-label="Close CV modal"
             >
               <X className="w-5 h-5" />
@@ -220,7 +220,7 @@ export const ResumeModal: React.FC<ResumeModalProps> = ({
                     <div className="text-sm font-bold text-white">{conference.event} · <span className="font-mono font-normal text-neutral-400">{conference.year}</span></div>
                     <p className="text-xs leading-relaxed text-neutral-300">{conference.contribution}</p>
                     {conference.session && <p className="text-xs text-neutral-400">{conference.session}</p>}
-                    {conference.link && <a href={conference.link} className="text-xs text-cyan-300 underline">{conference.link}</a>}
+                    {conference.link && <a href={conference.link} className="block min-h-11 break-all py-2 text-xs text-cyan-300 underline">{conference.link}</a>}
                   </div>
                 ))}
               </div>

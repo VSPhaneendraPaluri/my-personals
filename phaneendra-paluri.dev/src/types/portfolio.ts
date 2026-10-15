@@ -75,6 +75,7 @@ export interface PastimeItem {
   name: string;
   image: string;
   imageAlt: string;
+  focus: string;
 }
 
 export type ThemeAccent = 'cyan' | 'violet' | 'amber' | 'emerald';

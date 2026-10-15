@@ -80,7 +80,7 @@ export const Navbar: React.FC<NavbarProps> = ({ name, accent, onOpenResumeModal 
             {/* Mobile Hamburger */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="xl:hidden p-2 rounded-lg text-neutral-300 hover:text-white bg-white/5 border border-white/10"
+              className="xl:hidden flex min-h-11 min-w-11 items-center justify-center rounded-lg p-2 text-neutral-300 hover:text-white bg-white/5 border border-white/10"
               aria-label="Toggle navigation menu"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}

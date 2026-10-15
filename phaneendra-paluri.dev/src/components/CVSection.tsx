@@ -4,6 +4,8 @@ import {
   ChevronDown,
   BookOpen,
   Briefcase,
+  Bot,
+  Cable,
   Calendar,
   Code2,
   Cpu,
@@ -11,8 +13,12 @@ import {
   GraduationCap,
   Layers,
   MapPin,
+  Network,
   Presentation,
-  Sparkles
+  ScanEye,
+  Sparkles,
+  UsersRound,
+  Workflow
 } from 'lucide-react';
 import { ExperienceItem, EducationItem, SkillCategory, ConferenceItem, ThemeAccent } from '../types/portfolio';
 import { getAccentValues } from './CursorSpotlight';
@@ -36,6 +42,24 @@ const tabs: { id: CVTab; label: string; icon: typeof Briefcase }[] = [
   { id: 'education', label: 'Education', icon: GraduationCap },
   { id: 'conferences', label: 'Conferences', icon: Presentation }
 ];
+
+const skillIcons: Record<string, typeof Cpu> = {
+  'Processor and CPU fast models': Cpu,
+  'SystemC & TLM-2': Layers,
+  'Virtual prototyping': Network,
+  'CPU architectures': Cpu,
+  'CPU tool development': Workflow,
+  'Bus protocols': Cable,
+  'Accellera CCI': UsersRound,
+  'Embedded systems & controls': Bot,
+  'Computer vision': ScanEye,
+};
+
+const skillCategoryIcons: Record<string, typeof Cpu> = {
+  'cat-processors': Cpu,
+  'cat-modeling': Network,
+  'cat-standards': Layers,
+};
 
 export const CVSection: React.FC<CVSectionProps> = ({
   experiences,
@@ -130,7 +154,7 @@ export const CVSection: React.FC<CVSectionProps> = ({
                 key={id}
                 onClick={() => setActiveTab(id)}
                 aria-pressed={selected}
-                className={`flex min-w-fit items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold transition-all sm:text-sm ${
+                className={`flex min-h-11 min-w-fit items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold transition-all sm:text-sm ${
                   selected ? 'bg-neutral-800 text-white shadow-lg ring-1 ring-white/15' : 'text-neutral-400 hover:text-white'
                 }`}
                 style={selected ? { boxShadow: `inset 0 -2px 0 ${accentVals.hex}` } : undefined}
@@ -219,7 +243,7 @@ export const CVSection: React.FC<CVSectionProps> = ({
         {activeTab === 'expertise' && (
           <div className="grid gap-4 lg:grid-cols-3">
             {skillCategories.map((category, index) => {
-              const Icon = [Cpu, Layers, Code2][index % 3];
+              const Icon = skillCategoryIcons[category.id] ?? Code2;
               return (
                 <article key={category.id} data-card-theme="expertise" className="spotlight-card rounded-2xl p-6 sm:p-7">
                   <div className="mb-5 flex items-start justify-between gap-4">
@@ -232,12 +256,26 @@ export const CVSection: React.FC<CVSectionProps> = ({
                     <span className="font-mono text-xs text-neutral-600">0{index + 1}</span>
                   </div>
                   <ul className="space-y-4">
-                    {category.skills.map((skill) => (
-                      <li key={skill.name} className="border-t border-white/[0.07] pt-3">
-                        <div className="text-sm font-semibold text-neutral-200">{skill.name}</div>
-                        <p className="mt-1 text-xs leading-6 text-neutral-400">{skill.description}</p>
-                      </li>
-                    ))}
+                    {category.skills.map((skill) => {
+                      const SkillIcon = skillIcons[skill.name] ?? Code2;
+                      return (
+                        <li key={skill.name} className="border-t border-white/[0.07] pt-3">
+                          <div className="flex items-start gap-2.5">
+                            <span
+                              className="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04]"
+                              style={{ color: accentVals.hex }}
+                              aria-hidden="true"
+                            >
+                              <SkillIcon className="h-3.5 w-3.5" />
+                            </span>
+                            <div className="min-w-0">
+                              <div className="text-sm font-semibold text-neutral-200">{skill.name}</div>
+                              <p className="mt-1 text-xs leading-6 text-neutral-400">{skill.description}</p>
+                            </div>
+                          </div>
+                        </li>
+                      );
+                    })}
                   </ul>
                 </article>
               );
@@ -297,7 +335,7 @@ export const CVSection: React.FC<CVSectionProps> = ({
                     href={conference.link}
                     target="_blank"
                     rel="noreferrer"
-                    className="mt-5 inline-flex items-center gap-1.5 text-xs font-semibold transition hover:text-white"
+                    className="mt-5 inline-flex min-h-11 items-center gap-1.5 text-xs font-semibold transition hover:text-white"
                     style={{ color: accentVals.hex }}
                   >
                     View conference details <ArrowUpRight className="h-3.5 w-3.5" />

@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Sparkles, MapPin, Cpu } from 'lucide-react';
+import { Sparkles, MapPin, Cpu, CircuitBoard, Code2, GitBranch, Network, UsersRound, Waves, Workflow } from 'lucide-react';
 import { UserProfile, ThemeAccent } from '../types/portfolio';
 import { getAccentValues } from './CursorSpotlight';
 import { LatestFeeds } from './LatestFeeds';
@@ -8,6 +8,17 @@ interface AboutMeSectionProps {
   profile: UserProfile;
   accent: ThemeAccent;
 }
+
+const expertiseIcons: Record<string, typeof Cpu> = {
+  'Functional Modelling': Cpu,
+  'Architectural Modelling': Network,
+  'Modelling Frameworks': Workflow,
+  'CPU Architectures': Cpu,
+  'Instruction Stream Generation': GitBranch,
+  'High-Level Synthesis': CircuitBoard,
+  'SystemC-CCI Working Group': UsersRound,
+  'SystemC-AMS': Waves,
+};
 
 export const AboutMeSection: React.FC<AboutMeSectionProps> = ({ profile, accent }) => {
   const cardRef = useRef<HTMLDivElement>(null);
@@ -173,25 +184,35 @@ export const AboutMeSection: React.FC<AboutMeSectionProps> = ({ profile, accent 
             </p>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {profile.expertiseHighlights.map((highlight) => (
-              <div
-                key={highlight.label}
-                data-card-theme="expertise"
-                className="spotlight-card flex min-h-48 flex-col rounded-2xl p-5 transition-transform hover:-translate-y-1"
-              >
-                <div className="flex min-h-10 items-start text-sm font-semibold text-neutral-200">
-                  {highlight.label}
-                </div>
+            {profile.expertiseHighlights.map((highlight) => {
+              const Icon = expertiseIcons[highlight.label] ?? Code2;
+              return (
                 <div
-                  className="mt-2 flex min-h-12 items-center text-xl font-extrabold text-white font-display tracking-tight sm:text-2xl"
+                  key={highlight.label}
+                  data-card-theme="expertise"
+                  className="spotlight-card flex min-h-48 flex-col rounded-2xl p-5 transition-transform hover:-translate-y-1"
                 >
-                  {highlight.value}
+                  <div className="mb-3 flex items-center gap-2.5">
+                    <span
+                      className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04]"
+                      style={{ color: accentVals.hex }}
+                      aria-hidden="true"
+                    >
+                      <Icon className="h-4 w-4" />
+                    </span>
+                    <div className="flex min-h-10 items-center text-sm font-semibold text-neutral-200">
+                      {highlight.label}
+                    </div>
+                  </div>
+                  <div className="mt-1 flex min-h-12 items-center text-xl font-extrabold text-white font-display tracking-tight sm:text-2xl">
+                    {highlight.value}
+                  </div>
+                  <div className="mt-auto line-clamp-2 min-h-9 pt-2 text-xs leading-snug text-neutral-400">
+                    {highlight.context}
+                  </div>
                 </div>
-                <div className="mt-auto line-clamp-2 min-h-9 pt-2 text-xs leading-snug text-neutral-400">
-                  {highlight.context}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
