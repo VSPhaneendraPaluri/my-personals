@@ -73,9 +73,13 @@ const parsePostFile = (filePath: string, content: string): BlogPost => {
     }
     if (
       linkedinUrl.protocol !== 'https:' ||
-      (linkedinUrl.hostname !== 'linkedin.com' && !linkedinUrl.hostname.endsWith('.linkedin.com'))
+      (
+        linkedinUrl.hostname !== 'linkedin.com' &&
+        !linkedinUrl.hostname.endsWith('.linkedin.com') &&
+        linkedinUrl.hostname !== 'lnkd.in'
+      )
     ) {
-      throw new Error(`Blog post "${filePath}" must use an HTTPS LinkedIn URL.`);
+      throw new Error(`Blog post "${filePath}" must use an HTTPS LinkedIn URL or lnkd.in short link.`);
     }
 
     const linkedinType = metadata.linkedinType;

@@ -3,6 +3,8 @@ publishedAt: 2026-10-17
 topicId: isg
 seriesLabel: FLOW · Part 3 | Language Guide 1 of N
 excerpt: An introduction to FLOW's two small languages for separating architectural legality from test intent.
+linkedinUrl: https://lnkd.in/gtgPMNgG
+linkedinType: post
 ---
 
 # Two Small Files, One Grammar: An Introduction to FLOW's Languages
