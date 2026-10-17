@@ -3,6 +3,7 @@ import { ArrowLeft } from 'lucide-react';
 import { ThemeAccent } from '../types/portfolio';
 import { flowIntroductionPost, formatPostDate } from '../data/blogPosts';
 import { getAccentValues } from './CursorSpotlight';
+import { BlogPostNavigation } from './BlogPostNavigation';
 
 interface FlowIntroductionPostProps {
   accent: ThemeAccent;
@@ -345,6 +346,7 @@ alu_op    = add | sub | and | or | xor`}</code></pre>
         <footer className="border-t border-white/10 pt-6 text-sm leading-6 text-neutral-500">
           About the author: Phaneendra Paluri is an R&amp;D Principal Engineer in virtual prototyping at Synopsys, working on processor and SoC models in C++, SystemC and TLM2. Earlier roles include Infineon and CircuitSutra, where he also contributed to the Accellera CCI working group. FLOW is a personal hobby project, and the views here are his own.
         </footer>
+        <BlogPostNavigation post={flowIntroductionPost} />
       </div>
     </article>
   );

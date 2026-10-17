@@ -138,6 +138,20 @@ export const blogPosts = Object.entries(postFiles)
   .map(([filePath, content]) => parsePostFile(filePath, content))
   .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
 
+export const getAdjacentFlowPosts = (post: BlogPost) => {
+  const flowPosts = blogPosts
+    .filter(({ seriesLabel }) => /^FLOW · Part \d+\b/.test(seriesLabel))
+    .sort((a, b) => a.publishedAt.localeCompare(b.publishedAt));
+  const currentIndex = flowPosts.findIndex(({ slug }) => slug === post.slug);
+
+  if (currentIndex === -1) return {};
+
+  return {
+    previous: flowPosts[currentIndex - 1],
+    next: flowPosts[currentIndex + 1],
+  };
+};
+
 export interface ExternalLinkedInContent {
   title: string;
   description: string;

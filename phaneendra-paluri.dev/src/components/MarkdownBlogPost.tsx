@@ -3,6 +3,7 @@ import { ArrowLeft } from 'lucide-react';
 import { BlogPost, formatPostDate, writingTopics } from '../data/blogPosts';
 import { ThemeAccent } from '../types/portfolio';
 import { getAccentValues } from './CursorSpotlight';
+import { BlogPostNavigation } from './BlogPostNavigation';
 
 interface MarkdownBlogPostProps {
   post: BlogPost;
@@ -42,7 +43,18 @@ const renderInlineMarkdown = (text: string, keyPrefix: string): React.ReactNode[
 };
 
 const isBlockStart = (line: string) =>
-  /^(#{1,6}\s|[-*+]\s|\d+\.\s|>\s|```|---+\s*$)/.test(line);
+  /^(#{1,6}\s|[-*+]\s|\d+\.\s|>\s|```|---+\s*$|\|.*\|$)/.test(line);
+
+const isTableRow = (line: string) => /^\|.*\|$/.test(line);
+
+const parseTableCells = (line: string) =>
+  line.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map((cell) => cell.trim());
+
+const isTableSeparator = (line: string, columnCount: number) => {
+  if (!isTableRow(line)) return false;
+  const cells = parseTableCells(line);
+  return cells.length === columnCount && cells.every((cell) => /^:?-{3,}:?$/.test(cell));
+};
 
 const renderMarkdown = (markdown: string): React.ReactNode[] => {
   const lines = markdown.split(/\r?\n/);
@@ -73,6 +85,46 @@ const renderMarkdown = (markdown: string): React.ReactNode[] => {
       blocks.push(<hr key={index} className="border-white/10" />);
       index += 1;
       continue;
+    }
+
+    if (isTableRow(line)) {
+      const headers = parseTableCells(line);
+      const separator = lines[index + 1]?.trim() ?? '';
+      if (isTableSeparator(separator, headers.length)) {
+        const rows: string[][] = [];
+        index += 2;
+        while (index < lines.length && isTableRow(lines[index].trim())) {
+          rows.push(parseTableCells(lines[index].trim()));
+          index += 1;
+        }
+        blocks.push(
+          <div key={`table-${index}`} className="overflow-x-auto rounded-xl border border-white/10">
+            <table className="w-full min-w-max border-collapse text-left text-sm leading-6">
+              <thead className="bg-white/5 text-white">
+                <tr>
+                  {headers.map((header, cellIndex) => (
+                    <th key={cellIndex} scope="col" className="border-b border-white/10 px-4 py-3 font-semibold">
+                      {renderInlineMarkdown(header, `table-${index}-header-${cellIndex}`)}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row, rowIndex) => (
+                  <tr key={rowIndex} className="odd:bg-white/[0.02]">
+                    {headers.map((_, cellIndex) => (
+                      <td key={cellIndex} className="border-b border-white/5 px-4 py-3 align-top last:border-b-0">
+                        {renderInlineMarkdown(row[cellIndex] ?? '', `table-${index}-${rowIndex}-${cellIndex}`)}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>,
+        );
+        continue;
+      }
     }
 
     if (line.startsWith('```')) {
@@ -173,6 +225,7 @@ export const MarkdownBlogPost: React.FC<MarkdownBlogPostProps> = ({ post, accent
         <div className="prose-post space-y-5 pt-8 text-base leading-8 text-neutral-300">
           {renderMarkdown(post.body.replace(/^#\s+.+(?:\r?\n)+/, ''))}
         </div>
+        <BlogPostNavigation post={post} />
       </div>
     </article>
   );
