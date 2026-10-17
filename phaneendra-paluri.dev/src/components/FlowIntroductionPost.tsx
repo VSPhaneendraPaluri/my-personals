@@ -3,7 +3,7 @@ import { ArrowLeft } from 'lucide-react';
 import { ThemeAccent } from '../types/portfolio';
 import { flowIntroductionPost, formatPostDate } from '../data/blogPosts';
 import { getAccentValues } from './CursorSpotlight';
-import { BlogPostNavigation } from './BlogPostNavigation';
+import { BlogPostNavigation } from './MarkdownBlogPost';
 
 interface FlowIntroductionPostProps {
   accent: ThemeAccent;

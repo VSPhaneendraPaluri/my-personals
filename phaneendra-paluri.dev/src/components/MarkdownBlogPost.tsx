@@ -1,9 +1,47 @@
 import React from 'react';
-import { ArrowLeft } from 'lucide-react';
-import { BlogPost, formatPostDate, writingTopics } from '../data/blogPosts';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { BlogPost, formatPostDate, getAdjacentFlowPosts, writingTopics } from '../data/blogPosts';
 import { ThemeAccent } from '../types/portfolio';
 import { getAccentValues } from './CursorSpotlight';
-import { BlogPostNavigation } from './BlogPostNavigation';
+
+interface BlogPostNavigationProps {
+  post: BlogPost;
+}
+
+export const BlogPostNavigation: React.FC<BlogPostNavigationProps> = ({ post }) => {
+  const { previous, next } = getAdjacentFlowPosts(post);
+
+  if (!previous && !next) return null;
+
+  return (
+    <nav aria-label="Related FLOW posts" className="mt-12 grid gap-4 border-t border-white/10 pt-8 sm:grid-cols-2">
+      {previous ? (
+        <a
+          href={previous.slug}
+          className="group rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition-colors hover:border-white/20 hover:bg-white/[0.06]"
+        >
+          <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-neutral-500 group-hover:text-neutral-300">
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            Previous post
+          </span>
+          <span className="mt-2 block font-display font-semibold text-white">{previous.title}</span>
+        </a>
+      ) : <div aria-hidden="true" />}
+      {next && (
+        <a
+          href={next.slug}
+          className="group rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-right transition-colors hover:border-white/20 hover:bg-white/[0.06]"
+        >
+          <span className="flex items-center justify-end gap-2 text-xs font-semibold uppercase tracking-wider text-neutral-500 group-hover:text-neutral-300">
+            Next post
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </span>
+          <span className="mt-2 block font-display font-semibold text-white">{next.title}</span>
+        </a>
+      )}
+    </nav>
+  );
+};
 
 interface MarkdownBlogPostProps {
   post: BlogPost;
