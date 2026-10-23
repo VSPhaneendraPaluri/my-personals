@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>C++ Quiz – verified on Compiler Explorer</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+</head>
+<body>
+<main>
+  <header>
+    <h1>C++ Quiz</h1>
+    <p class="sub">Endless questions. Every one is compiled and run on <a href="https://godbolt.org" target="_blank" rel="noopener">Compiler Explorer</a> before you see it.</p>
+  </header>
+
+  <section class="bar">
+    <label for="std">C++ standard</label>
+    <select id="std"><option value="">Select a standard…</option></select>
+    <label class="auto"><input type="checkbox" id="auto"> auto-advance</label>
+    <div class="score" id="score" hidden>
+      <span><b id="sc-c">0</b>/<b id="sc-n">0</b> correct</span>
+      <span>streak <b id="sc-s">0</b></span>
+    </div>
+  </section>
+
+  <section id="card" class="card" hidden>
+    <div class="meta"><span class="chip" id="topic"></span><span class="flags" id="flags"></span></div>
+    <h2 id="prompt"></h2>
+    <pre class="code"><code class="language-cpp" id="code"></code></pre>
+    <div id="options" class="options"></div>
+    <div id="result" class="result" hidden>
+      <div id="verdict"></div>
+      <p id="explain"></p>
+      <details open><summary id="actual-title">Real result from Compiler Explorer</summary><pre id="actual"></pre></details>
+      <div class="actions"><a id="link" target="_blank" rel="noopener">Open in Compiler Explorer ↗</a><button id="next" class="primary">Next question →</button></div>
+    </div>
+  </section>
+
+  <section id="status" class="status" hidden></section>
+  <footer id="foot"></footer>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
