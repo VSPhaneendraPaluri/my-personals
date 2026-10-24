@@ -97,14 +97,63 @@ module.exports = [
   {
     id: 'shared-ptr-count', topic: 'std::shared_ptr use_count', minStd: '11',
     build(R) {
-      const k = R.int(1, 3), weak = R.chance(0.5);
-      const copies = Array.from({ length: k }, (_, i) => `        auto c${i} = a;`).join('\n');
+      const mode = R.int(0, 3);
+      if (mode === 0) {
+        // Nested scopes: copies (and optionally a weak_ptr) come and go with the blocks.
+        const k = R.int(1, 3), k2 = R.int(0, 2), weak = R.chance(0.5);
+        const copies = (n, p, ind) => Array.from({ length: n }, (_, i) => `${ind}auto ${p}${i} = a;`).join('\n');
+        const inner = k2 ? `        {\n${copies(k2, 'd', '            ')}\n            std::cout << a.use_count() << " ";\n        }\n` : '';
+        return {
+          kind: 'output',
+          code: `${inc('iostream', 'memory')}int main() {\n    auto a = std::make_shared<int>(42);\n    std::cout << a.use_count() << " ";\n    {\n${copies(k, 'c', '        ')}\n${weak ? '        std::weak_ptr<int> w = a;\n' : ''}        std::cout << a.use_count() << " ";\n${inner}    }\n    std::cout << a.use_count() << "${NL}";\n}\n`,
+          expected: `1 ${1 + k} ${k2 ? `${1 + k + k2} ` : ''}1`,
+          wrong: [`1 ${k} ${k2 ? `${k + k2} ` : ''}1`, `1 ${2 + k} ${k2 ? `${2 + k + k2} ` : ''}1`, `1 ${1 + k} ${k2 ? `${1 + k + k2} ` : ''}${1 + k}`],
+          explain: 'Each shared_ptr copy bumps the strong count; a weak_ptr does not. Copies made in a block are destroyed at its end, so the count falls back as the scopes close.',
+        };
+      }
+      if (mode === 1) {
+        // Aliasing constructor: shares ownership of a, points somewhere else.
+        const k = R.int(1, 3), reset = R.chance(0.5);
+        const al = Array.from({ length: k }, (_, i) => `    std::shared_ptr<int> b${i}(a, &a->${i % 2 ? 'y' : 'x'});`).join('\n');
+        return {
+          kind: 'output',
+          code: `${inc('iostream', 'memory')}struct P { int x = 1; int y = 2; };\n\nint main() {\n    auto a = std::make_shared<P>();\n${al}\n    std::cout << a.use_count() << " " << b0.use_count() << " ";\n${reset ? '    b0.reset();\n    std::cout << a.use_count() << " " << b0.use_count() << "' + NL + '";\n' : '    std::cout << *b0 << "' + NL + '";\n'}}\n`,
+          expected: reset ? `${1 + k} ${1 + k} ${k} 0` : `${1 + k} ${1 + k} 1`,
+          wrong: reset ? [`${1 + k} ${1 + k} ${k} ${k}`, `${1 + k} ${1 + k} ${1 + k} 0`, `${k} ${k} ${k - 1} 0`] : [`${1 + k} ${1 + k} 2`, `${k} ${k} 1`, `${1 + k} 1 1`],
+          explain: reset ? 'The aliasing constructor shares ownership with a (same control block), so every alias counts toward use_count(). Resetting b0 drops its share and leaves it empty (count 0).' : 'The aliasing constructor shares ownership with a (same control block) while pointing at a member, so each alias raises the shared count. *b0 reads P::x.',
+        };
+      }
+      if (mode === 2) {
+        // Random copy / move / reset sequence tracked by a tiny simulation.
+        const mk = R.chance(0.5);
+        const names = ['a'], group = { a: 0 }; // name -> group id or null (empty)
+        const cnt = (g) => (g === null ? 0 : Object.values(group).filter((x) => x === g).length);
+        const lines = [];
+        const total = R.int(3, 5);
+        for (let i = 0; i < total; i++) {
+          const src = R.pick(names), nn = 'p' + i, op = R.pick(['copy', 'copy', 'move', 'reset']);
+          if (op === 'copy') { lines.push(`    auto ${nn} = ${src};`); group[nn] = group[src]; names.push(nn); }
+          else if (op === 'move') { lines.push(`    auto ${nn} = std::move(${src});`); group[nn] = group[src]; group[src] = null; names.push(nn); }
+          else { lines.push(`    ${src}.reset();`); group[src] = null; }
+        }
+        const t = R.pick(names), cur = cnt(group[t]);
+        return {
+          kind: 'output',
+          code: `${inc('iostream', 'memory', 'utility')}int main() {\n${mk ? '    auto a = std::make_shared<int>(7);' : '    std::shared_ptr<int> a(new int(7));'}\n${lines.join('\n')}\n    std::cout << ${t}.use_count() << "${NL}";\n}\n`,
+          expected: String(cur),
+          wrong: [String(cur + 1), String(Math.max(0, cur - 1)), String(cur + 2)],
+          explain: 'A copy adds an owner; std::move transfers ownership (the count is unchanged and the source becomes empty, use_count() == 0); reset() releases the pointer\'s share. Count the owners of the object that ' + t + ' refers to.',
+        };
+      }
+      // mode 3: weak_ptr::lock() creates a temporary owner; expired() depends on who is left.
+      const k = R.int(0, 2);
+      const copies = Array.from({ length: k }, (_, i) => `    auto c${i} = a;\n`).join('');
       return {
         kind: 'output',
-        code: `${inc('iostream', 'memory')}int main() {\n    auto a = std::make_shared<int>(42);\n    std::cout << a.use_count() << " ";\n    {\n${copies}\n${weak ? '        std::weak_ptr<int> w = a;\n' : ''}        std::cout << a.use_count() << " ";\n    }\n    std::cout << a.use_count() << "${NL}";\n}\n`,
-        expected: `1 ${1 + k} 1`,
-        wrong: [`1 ${k} 1`, `1 ${2 + k} 1`, `1 ${1 + k} ${1 + k}`, `${k} ${1 + k} 1`],
-        explain: 'Each shared_ptr copy bumps the strong count; a weak_ptr does not. Copies made in the inner block are destroyed at its end.',
+        code: `${inc('iostream', 'memory')}int main() {\n    auto a = std::make_shared<int>(5);\n${copies}    std::weak_ptr<int> w = a;\n    std::cout << a.use_count() << " " << w.use_count() << " ";\n    {\n        auto l = w.lock();\n        std::cout << a.use_count() << " ";\n    }\n    a.reset();\n    std::cout << w.expired() << " " << w.use_count() << "${NL}";\n}\n`,
+        expected: `${1 + k} ${1 + k} ${2 + k} ${k === 0 ? 1 : 0} ${k}`,
+        wrong: [`${1 + k} ${2 + k} ${2 + k} ${k === 0 ? 1 : 0} ${k}`, `${1 + k} ${1 + k} ${1 + k} ${k === 0 ? 1 : 0} ${k}`, `${1 + k} ${1 + k} ${2 + k} 1 0`, `${1 + k} ${1 + k} ${2 + k} ${k === 0 ? 0 : 1} ${k}`],
+        explain: 'weak_ptr::use_count() reports the number of owning shared_ptrs. lock() creates a temporary owner (+1) that dies at the end of the block. After a.reset() the object lives on only if other copies still own it; expired() is true only when no owners remain.',
       };
     },
   },
@@ -148,14 +197,93 @@ module.exports = [
   {
     id: 'copy-vs-move', topic: 'Copy vs move construction', minStd: '11',
     build(R) {
-      const ops = Array.from({ length: 3 }, () => R.pick(['copy', 'move']));
-      const lines = ops.map((o, i) => `    T t${i + 1} = ${o === 'copy' ? 'a' : 'std::move(a)'};`);
+      const mode = R.int(0, 5);
+      const tidy = (a) => a.join(' ');
+      if (mode === 0) {
+        // Plain initialisation from lvalue / std::move.
+        const ops = Array.from({ length: R.int(2, 4) }, () => R.pick(['copy', 'move']));
+        const lines = ops.map((o, i) => `    T t${i + 1} = ${o === 'copy' ? 'a' : 'std::move(a)'};`);
+        return {
+          kind: 'output',
+          code: `${inc('iostream', 'utility')}struct T {\n    T() { std::cout << "ctor "; }\n    T(const T&) { std::cout << "copy "; }\n    T(T&&) { std::cout << "move "; }\n};\n\nint main() {\n    T a;\n${lines.join('\n')}\n    std::cout << "${NL}";\n}\n`,
+          expected: tidy(['ctor', ...ops]),
+          wrong: [tidy(['ctor', ...ops.map((o) => (o === 'copy' ? 'move' : 'copy'))]), tidy(['ctor', ...ops.map(() => 'copy')]), tidy(ops)],
+          explain: 'Initialising from an lvalue selects the copy constructor; from std::move(x) (an rvalue) selects the move constructor.',
+        };
+      }
+      if (mode === 1) {
+        // The class has no move constructor: std::move silently falls back to copy.
+        const ops = Array.from({ length: R.int(2, 4) }, () => R.pick(['copy', 'move']));
+        const lines = ops.map((o, i) => `    T t${i + 1} = ${o === 'copy' ? 'a' : 'std::move(a)'};`);
+        const useDel = R.chance(0.4);
+        return {
+          kind: 'output',
+          code: `${inc('iostream', 'utility')}struct T {\n    T() { std::cout << "ctor "; }\n    T(const T&) { std::cout << "copy "; }\n${useDel ? '' : '    ~T() {}\n'}};\n\nint main() {\n    T a;\n${lines.join('\n')}\n    std::cout << "${NL}";\n}\n`,
+          expected: tidy(['ctor', ...ops.map(() => 'copy')]),
+          wrong: [tidy(['ctor', ...ops]), tidy(['ctor', ...ops.map((o) => (o === 'copy' ? 'move' : 'copy'))]), tidy(['ctor', ...ops.map(() => 'move')])],
+          explain: 'T declares a copy constructor, so no move constructor is implicitly declared. An rvalue (std::move(a)) can still bind to const T&, so overload resolution picks the copy constructor.',
+        };
+      }
+      if (mode === 2) {
+        // Assignment vs construction, with both copy/move assignment operators.
+        const n = R.int(2, 4), ops = [];
+        const lines = [];
+        let fresh = 0;
+        for (let i = 0; i < n; i++) {
+          const kind = R.pick(['assign-copy', 'assign-move', 'init-copy', 'init-move']);
+          if (kind === 'assign-copy') { lines.push('    b = a;'); ops.push('copy='); }
+          else if (kind === 'assign-move') { lines.push('    b = std::move(a);'); ops.push('move='); }
+          else if (kind === 'init-copy') { lines.push(`    T c${++fresh} = a;`); ops.push('copy'); }
+          else { lines.push(`    T c${++fresh} = std::move(a);`); ops.push('move'); }
+        }
+        const flip = (o) => ({ copy: 'move', move: 'copy', 'copy=': 'move=', 'move=': 'copy=' })[o];
+        return {
+          kind: 'output',
+          code: `${inc('iostream', 'utility')}struct T {\n    T() { std::cout << "ctor "; }\n    T(const T&) { std::cout << "copy "; }\n    T(T&&) { std::cout << "move "; }\n    T& operator=(const T&) { std::cout << "copy= "; return *this; }\n    T& operator=(T&&) { std::cout << "move= "; return *this; }\n};\n\nint main() {\n    T a;\n    T b;\n${lines.join('\n')}\n    std::cout << "${NL}";\n}\n`,
+          expected: tidy(['ctor', 'ctor', ...ops]),
+          wrong: [tidy(['ctor', 'ctor', ...ops.map(flip)]), tidy(['ctor', ...ops]), tidy(['ctor', 'ctor', ...ops.map((o) => o.replace('=', ''))])],
+          explain: '"T c = x;" is initialisation (copy/move constructor), while "b = x;" on an existing object is assignment (copy/move assignment operator). std::move(a) makes the source an rvalue so the move overload wins.',
+        };
+      }
+      if (mode === 3) {
+        // Pass-by-value parameters.
+        const ops = Array.from({ length: R.int(2, 4) }, () => R.pick(['copy', 'move']));
+        const lines = ops.map((o) => `    take(${o === 'copy' ? 'a' : 'std::move(a)'});`);
+        return {
+          kind: 'output',
+          code: `${inc('iostream', 'utility')}struct T {\n    T() { std::cout << "ctor "; }\n    T(const T&) { std::cout << "copy "; }\n    T(T&&) { std::cout << "move "; }\n};\n\nvoid take(T) {}\n\nint main() {\n    T a;\n${lines.join('\n')}\n    std::cout << "${NL}";\n}\n`,
+          expected: tidy(['ctor', ...ops]),
+          wrong: [tidy(['ctor', ...ops.map((o) => (o === 'copy' ? 'move' : 'copy'))]), tidy(['ctor', ...ops.map(() => 'copy')]), tidy(['ctor', ...ops.map(() => 'move')])],
+          explain: 'A by-value parameter is initialised from the argument: an lvalue argument is copied, an rvalue (std::move(a)) is moved.',
+        };
+      }
+      if (mode === 4) {
+        // Implicit special members: a user-declared copy constructor suppresses the implicit move.
+        const declared = R.chance(0.5);
+        const ops = Array.from({ length: R.int(2, 4) }, () => R.pick(['copy', 'move']));
+        const lines = ops.map((o, i) => `    W w${i + 1} = ${o === 'copy' ? 'a' : 'std::move(a)'};`);
+        const res = (o) => (o === 'move' && declared ? 'copy' : o);
+        return {
+          kind: 'output',
+          code: `${inc('iostream', 'utility')}struct Tag {\n    Tag() { std::cout << "ctor "; }\n    Tag(const Tag&) { std::cout << "copy "; }\n    Tag(Tag&&) { std::cout << "move "; }\n};\n\nstruct W {\n    Tag t;\n${declared ? '    W() = default;\n    W(const W&) = default;\n' : ''}};\n\nint main() {\n    W a;\n${lines.join('\n')}\n    std::cout << "${NL}";\n}\n`,
+          expected: tidy(['ctor', ...ops.map(res)]),
+          wrong: [tidy(['ctor', ...ops.map((o) => (declared ? o : res(o) === 'copy' ? 'move' : 'copy'))]), tidy(['ctor', ...ops.map(() => 'copy')]), tidy(['ctor', ...ops.map(() => 'move')])],
+          explain: declared ? 'W declares a copy constructor (even "= default"), which suppresses the implicit move constructor. std::move(a) therefore falls back to the copy constructor, copying member t.' : 'W declares no special members, so the implicit copy and move constructors exist and call Tag\'s copy / move constructor member-wise.',
+        };
+      }
+      // mode 5: returning a local by value.
+      const style = R.pick(['named', 'moved', 'param']);
+      const body = {
+        named: { fn: 'T make() {\n    T t;\n    return t;\n}', call: 'T x = make();', out: 'ctor', why: '`return t;` returns a local by name, so the compiler may construct it directly in the caller (NRVO). No copy or move happens.' },
+        moved: { fn: 'T make() {\n    T t;\n    return std::move(t);\n}', call: 'T x = make();', out: 'ctor move', why: '`return std::move(t);` is not a plain local name, so the copy/move elision of `return t;` no longer applies: the move constructor is called. It is a well-known pessimisation.' },
+        param: { fn: 'T pass(T p) {\n    return p;\n}', call: 'T x = pass(a);', out: 'copy move', why: 'The argument a is copied into the parameter p. Returning the by-value parameter p treats it as an rvalue first, so the move constructor is used (a parameter cannot be elided into the return slot).' },
+      }[style];
       return {
         kind: 'output',
-        code: `${inc('iostream', 'utility')}struct T {\n    T() { std::cout << "ctor "; }\n    T(const T&) { std::cout << "copy "; }\n    T(T&&) { std::cout << "move "; }\n};\n\nint main() {\n    T a;\n${lines.join('\n')}\n    std::cout << "${NL}";\n}\n`,
-        expected: ['ctor', ...ops].join(' '),
-        wrong: [['ctor', ...ops.map((o) => (o === 'copy' ? 'move' : 'copy'))].join(' '), ['ctor', ...ops.map(() => 'copy')].join(' '), ops.join(' ')],
-        explain: 'Initialising from an lvalue selects the copy constructor; from std::move(x) (an rvalue) selects the move constructor.',
+        code: `${inc('iostream', 'utility')}struct T {\n    T() { std::cout << "ctor "; }\n    T(const T&) { std::cout << "copy "; }\n    T(T&&) { std::cout << "move "; }\n};\n\n${body.fn}\n\nint main() {\n${style === 'param' ? '    T a;\n' : ''}    ${body.call}\n    std::cout << "${NL}";\n}\n`,
+        expected: style === 'param' ? 'ctor copy move' : body.out,
+        wrong: style === 'named' ? ['ctor move', 'ctor copy', 'ctor copy move'] : style === 'moved' ? ['ctor', 'ctor copy', 'ctor move move'] : ['ctor copy copy', 'ctor copy', 'ctor move move'],
+        explain: body.why,
       };
     },
   },

@@ -109,15 +109,33 @@ module.exports = [
   {
     id: 'auto-return-compile', topic: 'Return type deduction', minStd: '11', kind: 'compile',
     build(R, S) {
-      const bad = R.chance(0.45);
-      const code = bad
-        ? `auto pick(bool b) {\n    if (b) return 1;\n    return 2.0;\n}\n\nint main() { pick(true); }\n`
-        : `auto twice(int x) {\n    return x * ${R.int(2, 9)};\n}\n\nint main() { twice(3); }\n`;
+      const f = R.pick(['pick', 'choose', 'get', 'value', 'select']);
+      const a = R.int(1, 9), b2 = R.int(10, 40);
+      const call = `int main() { ${f}(true); }`;
+      // ok14: compiles from C++14 on; always: compiles in every standard >= C++11.
+      const cases = [
+        { ok14: true, code: `auto ${f}(int x) {\n    return x * ${a + 1};\n}\n\nint main() { ${f}(3); }\n`, why: 'C++14 deduces the return type from the return statement.' },
+        { ok14: true, code: `auto ${f}(bool b) {\n    if (b) return ${a};\n    return ${b2};\n}\n\n${call}\n`, why: 'Every return statement deduces int, so the deduced return type is consistent.' },
+        { ok14: false, code: `auto ${f}(bool b) {\n    if (b) return ${a};\n    return ${b2}.0;\n}\n\n${call}\n`, why: 'All return statements of a function with a deduced return type must deduce the same type; int vs double is inconsistent.' },
+        { ok14: false, code: `auto ${f}(bool b) {\n    if (b) return ${a};\n    return ${b2}u;\n}\n\n${call}\n`, why: 'int and unsigned int are different deduced types, so the return statements are inconsistent.' },
+        { ok14: false, code: `auto ${f}(bool b) {\n    if (b) return ${a};\n    return ${b2}L;\n}\n\n${call}\n`, why: 'int and long are different deduced types, so the return statements are inconsistent.' },
+        { ok14: false, code: `auto ${f}(bool b) {\n    if (b) return '${R.pick(['a', 'x', 'z'])}';\n    return ${b2};\n}\n\n${call}\n`, why: 'char and int are different deduced types, so the return statements are inconsistent.' },
+        { ok14: false, code: `auto ${f}(bool b) {\n    if (b) return true;\n    return ${b2};\n}\n\n${call}\n`, why: 'bool and int are different deduced types: no implicit conversion is applied between return statements.' },
+        { ok14: false, code: `auto ${f}(bool b) {\n    if (b) return ${a};\n    return nullptr;\n}\n\n${call}\n`, why: 'int and std::nullptr_t are different deduced types, so the return statements are inconsistent.' },
+        { ok14: false, code: `static int g = ${a};\n\nauto ${f}(bool b) {\n    if (b) return &g;\n    return static_cast<const int*>(&g);\n}\n\n${call}\n`, why: 'int* and const int* are different deduced types, so the return statements are inconsistent.' },
+        { ok14: true, code: `auto ${f}(bool b) {\n    const int c = ${a};\n    int d = ${b2};\n    if (b) return c;\n    return d;\n}\n\n${call}\n`, why: 'auto deduction drops top-level const, so both returns deduce plain int and are consistent.' },
+        { ok14: true, code: `auto ${f}(bool b) {\n    if (b) return "${R.pick(['yes', 'on', 'ok'])}";\n    return "${R.pick(['no!', 'off', 'nope'])}";\n}\n\n${call}\n`, why: 'String literals decay during auto deduction, so both return statements deduce const char* even though the array lengths differ.' },
+        { ok14: true, code: `auto ${f}(int n) {\n    if (n <= 1) return ${a};\n    return n * ${f}(n - 1);\n}\n\nint main() { ${f}(4); }\n`, why: 'The first return statement already deduced int, so the recursive call afterwards has a known type.' },
+        { ok14: false, code: `auto ${f}(int n) {\n    if (n > 1) return n * ${f}(n - 1);\n    return ${a};\n}\n\nint main() { ${f}(4); }\n`, why: 'The recursive call appears before any return statement has deduced the return type, so the function is used before its type is deduced.' },
+        { always: true, code: `auto ${f}(bool b) -> int {\n    if (b) return ${a};\n    return ${b2}.5;\n}\n\n${call}\n`, why: 'A trailing return type is explicit (C++11): the double is simply converted to int, so no deduction takes place.' },
+      ];
+      const c = R.pick(cases);
+      const ok = c.always ? S.ge('11') : S.ge('14') && c.ok14;
       return {
-        kind: 'compile', code,
-        expected: S.ge('14') && !bad ? 'ok' : 'error',
-        errorRe: S.ge('14') && bad ? /inconsistent|deduc/i : null,
-        explain: !S.ge('14') ? 'Plain `auto` as a function return type (without a trailing return type) is a C++14 feature.' : (bad ? 'All return statements of a function with a deduced return type must deduce the same type; int vs double is inconsistent.' : 'C++14 deduces the return type from the return statement.'),
+        kind: 'compile', code: c.code,
+        expected: ok ? 'ok' : 'error',
+        errorRe: S.ge('14') && !c.always && !c.ok14 ? /inconsistent|deduc/i : null,
+        explain: c.always ? c.why : (!S.ge('14') ? 'Plain `auto` as a function return type (without a trailing return type) is a C++14 feature.' : c.why),
       };
     },
   },

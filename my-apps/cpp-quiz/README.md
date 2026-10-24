@@ -104,6 +104,23 @@ VERIFY_BACKEND=local node server.js   # uses local g++
 
 No npm dependencies. Requires internet for the default backend.
 
+## Question templates
+
+Every template in `lib/templates/` is a parametric generator (`build(R, S, ctx)`) whose
+concrete question is compiled and run before it is served. 75 templates in total:
+
+| File | Focus |
+|---|---|
+| `t98.js`, `t11.js`, `t14.js`, `t17.js`, `tcompile.js` | Core language by standard (arithmetic, lambdas, smart pointers, constexpr, ...) |
+| `tpoly.js` | Polymorphism & inheritance: slicing, virtual destructors, virtual calls in constructors, default arguments, name hiding, diamond / virtual inheritance, `dynamic_cast` / `typeid`, abstract classes, access control, `final`, static members |
+| `toverload.js` | Overload resolution ranking, ambiguity & illegal overloads, overriding vs overloading vs hiding, `operator++` prefix/postfix, operator overloading rules |
+| `tstr.js` | C strings (`sizeof` vs `strlen`, `<cstring>`), char arithmetic, `std::string` constructors / find / modify / compare / conversions, `operator+` and `char*` conversion errors |
+
+Low-variety templates (`shared-ptr-count`, `copy-vs-move`, `override-compile`,
+`auto-return-compile`) were expanded with extra parametric cases (aliasing constructor,
+copy/move/reset sequences, `weak_ptr::lock`, assignment vs construction, NRVO / `return
+std::move`, a dozen `override` mismatches, many deduction conflicts).
+
 ## Test templates offline
 
 ```

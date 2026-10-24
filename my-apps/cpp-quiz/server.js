@@ -15,7 +15,7 @@ const served  = new Map(); // id -> question
 const DOMAIN_KEYWORDS = {
   lifetime:    ['unique_ptr','shared_ptr','weak_ptr','raii','ownership','smart pointer','dangle','leak','destructor','copy','move','rule of'],
   move:        ['move','rvalue','&&','copy vs move','value category','forward','perfect'],
-  classes:     ['virtual','override','vtable','constructor','destructor','class','struct','oop','slicing','inheritance','polymorphism'],
+  classes:     ['virtual','override','vtable','constructor','destructor','class','struct','oop','slicing','inheritance','polymorphism','overrid','hiding','abstract','dynamic_cast','hierarchy','base class','derived'],
   templates:   ['template','generic','variadic','sfinae','enable_if','concept','deduction','specialization','auto parameter'],
   constexpr:   ['constexpr','static_assert','compile-time','type_traits','consteval','constant'],
   types:       ['auto','decltype','cast','const','type','nullptr','enum','scoped enum','conversion','sizeof','fundamental'],

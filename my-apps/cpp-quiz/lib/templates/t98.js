@@ -309,18 +309,37 @@ int main() {
   {
     id: 'override-compile', topic: 'override & virtual signatures', minStd: '98', kind: 'compile',
     build(R, S) {
-      const bad = R.chance(0.55);
-      const kind = R.int(0, 1);
-      const baseSig = kind ? 'void run(int) const' : 'void run(int)';
-      const derSig = bad ? (kind ? 'void run(int)' : 'void run(long)') : baseSig;
-      const fixed = `struct Base {\n    virtual ${baseSig} {}\n    virtual ~Base() {}\n};\n\nstruct Derived : Base {\n    ${derSig} override {}\n};\n\nint main() {\n    Derived d;\n    Base& b = d;\n    (void)b;\n}\n`;
+      const fn = R.pick(['run', 'step', 'apply', 'handle', 'process', 'update']);
+      const ptys = R.pick([['int', 'long'], ['int', 'unsigned'], ['double', 'float'], ['int', 'short'], ['const char*', 'char*']]);
+      const [P, Q] = R.chance(0.5) ? ptys : [ptys[1], ptys[0]];
+      const ERR = /override|virtual|conflicting|covariant|looser|final|throw/i;
+      // Each case: lines placed in Base / Derived; ok = whether it should compile in C++11+.
+      const cases = [
+        { ok: true, base: `virtual void ${fn}(${P}) {}`, der: `void ${fn}(${P}) override {}`, why: 'The signature matches the base virtual function exactly, so `override` is accepted.' },
+        { ok: true, base: `virtual void ${fn}(${P}) const {}`, der: `void ${fn}(${P}) const override {}`, why: 'The const qualifier matches too, so this really overrides the base function.' },
+        { ok: false, base: `virtual void ${fn}(${P}) const {}`, der: `void ${fn}(${P}) override {}`, why: 'The base function is const but the derived one is not. That is a different signature, so there is nothing to override.' },
+        { ok: false, base: `virtual void ${fn}(${P}) {}`, der: `void ${fn}(${P}) const override {}`, why: 'Adding const makes a different function: the derived member does not override the non-const base virtual.' },
+        { ok: false, base: `virtual void ${fn}(${P}) {}`, der: `void ${fn}(${Q}) override {}`, why: `The parameter type differs (${P} vs ${Q}), so this is a new function, not an override. \`override\` turns that mistake into an error.` },
+        { ok: false, base: `virtual void ${fn}(int) {}`, der: `void ${fn}(const int&) override {}`, why: 'A reference parameter is a different type from a by-value one, so the signatures do not match and nothing is overridden.' },
+        { ok: false, base: `virtual void ${fn}(${P}) {}`, der: `int ${fn}(${P}) override { return 0; }`, why: 'Same parameters but a different, non-covariant return type: the derived function conflicts with the base virtual function.' },
+        { ok: false, base: `void ${fn}(${P}) {}`, der: `void ${fn}(${P}) override {}`, why: 'The base function is not virtual, so there is nothing to override. `override` requires a virtual function in a base class.' },
+        { ok: false, base: `virtual void ${fn}(${P}) {}`, der: `void ${fn}x(${P}) override {}`, why: `The derived name is a typo (${fn}x vs ${fn}); no base virtual has that name, so \`override\` is an error.` },
+        { ok: false, base: `virtual void ${fn}(${P}) final {}`, der: `void ${fn}(${P}) override {}`, why: 'The base function is declared `final`, so it cannot be overridden any further.' },
+        { ok: true, base: `virtual Base* ${fn}() { return this; }`, der: `Derived* ${fn}() override { return this; }`, why: 'A covariant return type (Derived* instead of Base*) is allowed for an override because Derived derives from Base.' },
+        { ok: false, base: `virtual Base* ${fn}() { return this; }`, der: `int* ${fn}() override { return nullptr; }`, why: 'int* is not covariant with Base*: an overriding function may only change its return type to a pointer/reference to a derived class.' },
+        { ok: true, base: `virtual void ${fn}(${P}) {}`, der: `void ${fn}(${P}) noexcept override {}`, why: 'An override may use a stricter exception specification (noexcept) than the base function.' },
+        { ok: false, base: `virtual void ${fn}(${P}) noexcept {}`, der: `void ${fn}(${P}) override {}`, why: 'The base function is noexcept; an override must not allow more exceptions than the function it overrides.' },
+        { ok: true, base: `virtual void ${fn}(${P}) {}`, der: `void ${fn}(${P}) override {}\n    ~Derived() override {}`, why: 'Even a destructor can carry `override`; here the base destructor is virtual and the function signature matches.' },
+        { ok: true, base: `virtual void ${fn}(${P}) {}`, der: `void ${fn}(${P}) override {}`, priv: true, why: 'Access control is not part of the signature: a private override of a public virtual function is valid (calls through Base& still reach it).' },
+      ];
+      const c = R.pick(cases);
+      const derBody = c.priv ? `private:\n    ${c.der}` : `    ${c.der}`;
+      const code = `struct Base {\n    ${c.base}\n    virtual ~Base() {}\n};\n\nstruct Derived : Base {\n${derBody}\n};\n\nint main() {\n    Derived d;\n    Base& b = d;\n    (void)b;\n}\n`;
       return {
-        kind: 'compile', code: fixed,
-        expected: S.ge('11') && !bad ? 'ok' : 'error',
-        errorRe: S.ge('11') && bad ? /override|virtual/i : null,
-        explain: S.ge('11')
-          ? (bad ? '`override` makes the compiler check that the function really overrides a base virtual: the parameter list / cv-qualification must match exactly, otherwise it is an error.' : 'The signature matches the base virtual function exactly, so `override` is accepted.')
-          : '`override` is a C++11 feature; in C++98 it is just an unknown token here, so the declaration is a syntax error.',
+        kind: 'compile', code,
+        expected: S.ge('11') && c.ok ? 'ok' : 'error',
+        errorRe: S.ge('11') && !c.ok ? ERR : null,
+        explain: S.ge('11') ? c.why : '`override` is a C++11 feature; in C++98 it is just an unknown token here, so the declaration is a syntax error.',
       };
     },
   },
