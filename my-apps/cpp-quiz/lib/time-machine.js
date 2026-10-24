@@ -1,0 +1,128 @@
+// Time Machine questions (Section 4 of cpp-quiz-organization.md).
+//
+// These questions show the SAME snippet under two different standards and ask
+// "does this compile / what does it output?". They teach language evolution
+// far better than flag trivia.
+//
+// Each entry below covers one of the canonical Time Machine topics from the org doc.
+// The question-schema.js `answers_by_standard` field stores the per-standard result.
+
+const TIME_MACHINE_QUESTIONS = [
+  {
+    id: 'tm-auto-storage-vs-deduction',
+    modes: ['learn', 'language_lawyer', 'time_machine'],
+    format: 'compiles',
+    domains: ['types'],
+    feature: 'auto_keyword_semantics',
+    difficulty: 2,
+    code: 'int main() {\n    auto x = 42;\n    return x;\n}',
+    answers_by_standard: { 'c++98': 'ok', 'c++11': 'ok', 'c++14': 'ok', 'c++17': 'ok' },
+    // Note: compiles in all standards, but `auto` means *storage class* in 98
+    // and *type deduction* in 11+. The interesting version is:
+    // `auto int x = 42;` which is ok in 98 but error in 11+.
+    explanation: '`auto` was a storage-class keyword (redundant) in C++98/03. In C++11 it became type deduction. The bare `auto x = 42;` compiles everywhere, but `auto int x = 42;` fails from C++11 onward.',
+    reference: 'https://en.cppreference.com/w/cpp/keyword/auto',
+    flags_independent: true,
+    verified: ['gcc-13'],
+  },
+  {
+    id: 'tm-auto-int-storage-class',
+    modes: ['learn', 'language_lawyer', 'time_machine'],
+    format: 'compiles',
+    domains: ['types'],
+    feature: 'auto_storage_class_removed',
+    difficulty: 2,
+    code: 'int main() {\n    auto int x = 42;\n    return x;\n}',
+    answers_by_standard: { 'c++98': 'ok', 'c++11': 'error', 'c++14': 'error', 'c++17': 'error' },
+    explanation: '`auto int x` is valid in C++98 (auto is a redundant storage-class specifier). C++11 repurposed `auto` for type deduction and removed the old meaning — this is now a compile error.',
+    reference: 'https://en.cppreference.com/w/cpp/keyword/auto',
+    flags_independent: true,
+    verified: ['gcc-13'],
+  },
+  {
+    id: 'tm-closing-angle-brackets',
+    modes: ['learn', 'language_lawyer', 'time_machine'],
+    format: 'compiles',
+    domains: ['templates'],
+    feature: 'closing_angle_brackets',
+    difficulty: 1,
+    code: '#include <vector>\nint main() {\n    std::vector<std::vector<int>> v;\n    return 0;\n}',
+    answers_by_standard: { 'c++98': 'error', 'c++11': 'ok', 'c++14': 'ok', 'c++17': 'ok' },
+    explanation: 'In C++98/03, `>>` in a template argument list was always parsed as the right-shift operator, requiring a space: `vector<vector<int> >`. C++11 fixed the grammar.',
+    reference: 'https://en.cppreference.com/w/cpp/language/template_argument_deduction',
+    flags_independent: true,
+    verified: ['gcc-13'],
+  },
+  {
+    id: 'tm-constexpr-loop',
+    modes: ['learn', 'language_lawyer', 'time_machine'],
+    format: 'compiles',
+    domains: ['constexpr'],
+    feature: 'relaxed_constexpr',
+    difficulty: 2,
+    code: 'constexpr int sum(int n) {\n    int s = 0;\n    for (int i = 1; i <= n; ++i) s += i;\n    return s;\n}\nstatic_assert(sum(4) == 10, "bad");\nint main() {}',
+    answers_by_standard: { 'c++98': 'error', 'c++11': 'error', 'c++14': 'ok', 'c++17': 'ok' },
+    explanation: 'C++11 constexpr functions were limited to a single return expression. C++14 relaxed the rules to allow local variables, loops, and conditionals.',
+    reference: 'https://en.cppreference.com/w/cpp/language/constexpr',
+    flags_independent: true,
+    verified: ['gcc-13'],
+  },
+  {
+    id: 'tm-guaranteed-copy-elision',
+    modes: ['learn', 'language_lawyer', 'time_machine'],
+    format: 'compiles',
+    domains: ['lifetime', 'classes'],
+    feature: 'guaranteed_copy_elision',
+    difficulty: 2,
+    code: 'struct S {\n    S() {}\n    S(const S&) = delete;\n};\nS make() { return S(); }\nint main() { S s = make(); }',
+    answers_by_standard: { 'c++98': 'error', 'c++11': 'error', 'c++14': 'error', 'c++17': 'ok' },
+    explanation: 'Before C++17, returning by value required an accessible copy or move constructor even when elision was possible. C++17 guarantees no copy for prvalue initialisation — the constructor is never called.',
+    reference: 'https://en.cppreference.com/w/cpp/language/copy_elision',
+    flags_independent: true,
+    verified: ['gcc-13'],
+  },
+  {
+    id: 'tm-static-assert-no-msg',
+    modes: ['learn', 'language_lawyer', 'time_machine'],
+    format: 'compiles',
+    domains: ['constexpr'],
+    feature: 'static_assert_optional_message',
+    difficulty: 1,
+    code: 'int main() {\n    static_assert(sizeof(int) >= 2);\n    return 0;\n}',
+    answers_by_standard: { 'c++98': 'error', 'c++11': 'error', 'c++14': 'error', 'c++17': 'ok' },
+    explanation: 'C++11 introduced `static_assert` but required a message string. C++17 made the message optional.',
+    reference: 'https://en.cppreference.com/w/cpp/language/static_assert',
+    flags_independent: true,
+    verified: ['gcc-13'],
+  },
+  {
+    id: 'tm-removed-bool-increment',
+    modes: ['learn', 'language_lawyer', 'time_machine'],
+    format: 'compiles',
+    domains: ['types'],
+    feature: 'bool_increment_removed',
+    difficulty: 1,
+    code: 'int main() {\n    bool b = false;\n    ++b;\n    return b ? 0 : 1;\n}',
+    answers_by_standard: { 'c++98': 'ok', 'c++11': 'ok', 'c++14': 'ok', 'c++17': 'error' },
+    explanation: 'Incrementing a bool was deprecated in C++98 and finally removed in C++17.',
+    reference: 'https://en.cppreference.com/w/cpp/language/operator_incdec',
+    flags_independent: true,
+    verified: ['gcc-13'],
+  },
+  {
+    id: 'tm-dynamic-exception-spec',
+    modes: ['learn', 'language_lawyer', 'time_machine'],
+    format: 'compiles',
+    domains: ['concurrency'],
+    feature: 'dynamic_exception_specs_removed',
+    difficulty: 2,
+    code: 'void f() throw(int) {}\nint main() { f(); }',
+    answers_by_standard: { 'c++98': 'ok', 'c++11': 'ok', 'c++14': 'ok', 'c++17': 'error' },
+    explanation: 'Dynamic exception specifications (`throw(X)`) were deprecated in C++11 and removed entirely in C++17.',
+    reference: 'https://en.cppreference.com/w/cpp/language/except_spec',
+    flags_independent: true,
+    verified: ['gcc-13'],
+  },
+];
+
+module.exports = TIME_MACHINE_QUESTIONS;
