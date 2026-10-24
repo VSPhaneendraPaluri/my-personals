@@ -1,6 +1,8 @@
 // Runs every template many times against a real compiler and reports any question whose
 // intended answer the compiler does not confirm.  Usage:
 //   VERIFY_BACKEND=local node test/validate-templates.js [iterations] [templateIdFilter]
+// Set GXX=clang++ to cross-check the answers with Clang instead of g++ (answers that only one compiler produces are
+// implementation-specific and should be fixed or tagged).
 // (With the default backend it uses godbolt.org instead.)
 const { createBackend } = require('../lib/backends');
 const { STANDARDS, rankOf } = require('../lib/standards');
@@ -36,7 +38,11 @@ const FLAGS = '-pedantic-errors';
       const res = await be.run(q.code, `-std=${flag} ${FLAGS}`);
       const key = `${t.id}@${S.key}`;
       const rec = per.get(key) || { ok: 0, bad: 0 }; per.set(key, rec);
-      if (Q.confirm(q, res)) { ok++; rec.ok++; }
+      if (Q.confirm(q, res) && Q.distractorCollision(q, res)) {
+        // The answer is right, but a wrong option equals the real output: the question would have two correct choices.
+        bad++; rec.bad++;
+        if (!fails.has(key)) fails.set(key, `DISTRACTOR COLLISION\noptions: ${JSON.stringify(q.options)} correct=${q.correct}\nstdout: ${JSON.stringify(res.stdout)}\n--- code ---\n${q.code}`);
+      } else if (Q.confirm(q, res)) { ok++; rec.ok++; }
       else {
         bad++; rec.bad++;
         if (!fails.has(key)) fails.set(key, `expected: ${JSON.stringify(q.expected)}\n--- code ---\n${q.code}\n--- built=${res.built} ran=${res.ran} exit=${res.exit}\nstdout: ${JSON.stringify(res.stdout)}\nstderr: ${res.stderr.split('\n').slice(0, 6).join('\n')}`);

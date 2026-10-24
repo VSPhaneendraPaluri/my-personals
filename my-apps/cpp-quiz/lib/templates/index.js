@@ -8,4 +8,5 @@ for (const t of all) {
   if (ids.has(t.id)) throw new Error('duplicate template id ' + t.id);
   ids.add(t.id);
 }
-module.exports = all;
+// Every template must carry explicit domains / difficulty / reference (see meta.js).
+module.exports = require('./meta').apply(all);

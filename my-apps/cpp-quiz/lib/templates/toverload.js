@@ -15,7 +15,7 @@ module.exports = [
         const decl = `void f(int) ${say('int')}\nvoid f(double) ${say('double')}\n${withLong ? 'void f(long) ' + say('long') + '\n' : ''}`;
         const calls = [["'a'", 'int', 'char -> int is an integral promotion, better than any conversion'], ['true', 'int', 'bool -> int is an integral promotion'], ['1.5f', 'double', 'float -> double is a floating-point promotion'], ['(short)3', 'int', 'short -> int is an integral promotion'], ['1', 'int', 'int is an exact match'], ['1.5', 'double', 'double is an exact match']];
         if (withLong) calls.push(['1L', 'long', 'long is an exact match']);
-        cases.push({ decl, calls, why: 'Overload resolution ranks implicit conversions: exact match beats promotion (char/short/bool -> int, float -> double), which beats other standard conversions.' });
+        cases.push({ diff: 2, decl, calls, why: 'Overload resolution ranks implicit conversions: exact match beats promotion (char/short/bool -> int, float -> double), which beats other standard conversions.' });
       }
       // 2. pointer / bool / string traps
       {
@@ -42,12 +42,12 @@ module.exports = [
         const calls = [['x', 'lref', 'a modifiable lvalue binds best to int&'], ['c', 'const-ref', 'a const lvalue can only bind to const int&'], [rv ? '3' : '3', rv ? 'rref' : 'const-ref', rv ? 'a prvalue prefers int&& over const int&' : 'a temporary cannot bind to int&, only to const int&']];
         if (rv) calls.push(['x + 1', 'rref', 'x + 1 is a prvalue, which binds to int&&'], ['std::move(x)', 'rref', 'std::move casts to an xvalue, which binds to int&&']);
         else calls.push(['x + 1', 'const-ref', 'x + 1 is a temporary, which can only bind to const int&']);
-        cases.push({ decl, vars: 'int x = 1;\n    const int c = 2;', calls, extraInc: ['utility'], why: 'Reference binding rules: non-const lvalue references only bind to modifiable lvalues; const references accept everything; an rvalue reference (C++11) is preferred for rvalues.' });
+        cases.push({ diff: 2, decl, vars: 'int x = 1;\n    const int c = 2;', calls, extraInc: ['utility'], why: 'Reference binding rules: non-const lvalue references only bind to modifiable lvalues; const references accept everything; an rvalue reference (C++11) is preferred for rvalues.' });
       }
       // 4. const member overloads
       {
         cases.push({
-          raw: true,
+          diff: 2, raw: true,
           decl: `struct A {\n    void f() ${say('non-const')}\n    void f() const ${say('const')}\n};\n`, vars: 'A a;\n    const A ca = A();\n    const A& r = a;\n    A& r2 = a;',
           calls: [['a.f()', 'non-const', 'a is a non-const object'], ['ca.f()', 'const', 'ca is const, so only the const member is viable'], ['r.f()', 'const', 'the reference is to const A: the static type decides, not the object\'s real constness'], ['r2.f()', 'non-const', 'r2 is a non-const reference'], ['A().f()', 'non-const', 'a non-const temporary prefers the non-const overload']],
           why: 'Member functions overloaded on const are chosen from the constness of the expression used to call them (the implicit object parameter).',
@@ -93,9 +93,10 @@ module.exports = [
       const wrong = [picks.map((p) => tags[(tags.indexOf(p[1]) + 1) % tags.length]).join(' '), picks.map((p) => tags[(tags.indexOf(p[1]) + 2) % tags.length]).join(' '), picks.map((p, i) => (i === 0 ? tags[(tags.indexOf(p[1]) + 1) % tags.length] : p[1])).join(' ')];
       const call = (p) => (c.raw ? `    ${p[0]};` : `    f(${p[0]});`);
       return {
-        kind: 'output',
+        kind: 'output', difficulty: c.diff || 3,
         code: `${inc(...incs)}${c.decl}\nint main() {\n${c.vars ? '    ' + c.vars + '\n' : ''}${picks.map(call).join('\n')}\n    std::cout << "${NL}";\n}\n`,
         expected, wrong,
+        wrongWhy: ["The call resolves by ranking conversions: exact match, then promotion, then other conversions.", "Compare the best conversion sequence of each viable overload for this argument.", "At least one call picks a different overload than this: check exact matches and promotions first."],
         explain: c.why + ' ' + picks.map((p) => `${c.raw ? p[0] : `f(${p[0]})`}: ${p[2]}.`).join(' '),
       };
     },
@@ -157,6 +158,7 @@ module.exports = [
         code: `${inc('iostream')}struct Base {\n    virtual void f(int) ${say('Base::f(int)')}\n    virtual void f(double) ${say('Base::f(double)')}\n    virtual ~Base() {}\n};\n\nstruct Derived : Base {\n${using ? '    using Base::f;\n' : ''}${overInt ? '    void f(int) ' + say('Derived::f(int)') + '\n' : ''}${overDouble ? '    void f(double) ' + say('Derived::f(double)') + '\n' : ''}};\n\nint main() {\n    Derived d;\n    Base* p = &d;\n    p->f(${aP[0]});\n    d.f(${aD[0]});\n    std::cout << "${NL}";\n}\n`,
         expected: `${viaP} ${viaD}`,
         wrong: [`${wrongP} ${viaD}`, `${viaP} Base::f(${sd})`, `${viaP} ${final(sd)}::f(${alt(sd)})`],
+        wrongWhy: ["Through Base* the virtual call goes to the final overrider of the overload chosen from Base's declarations.", "Through the Derived object, name lookup in Derived hides the base overloads unless a using-declaration is present.", "Decide which overload (int or double) is selected first, then whether Derived overrides it."],
         explain: 'Through Base* the overload (f(int) vs f(double)) is chosen using Base\'s declarations, then the virtual call goes to the final overrider of that exact signature (Derived if it declares it, otherwise Base). Through a Derived object, name lookup finds Derived::f first and hides all Base::f' + (using ? ' except those re-exposed by the using-declaration' : '') + ', so overload resolution only sees the visible candidates.',
       };
     },
@@ -181,6 +183,7 @@ module.exports = [
         code: `${inc('iostream')}struct C {\n    int v;\n    explicit C(int x) : v(x) {}\n    C& operator++() { ++v; return *this; }\n    C operator++(int) { C old(*this); ++v; return old; }\n};\n\nint main() {\n    C c(${v0});\n${stmts.map((s) => `    std::cout << ${s} << " ";`).join('\n')}\n    std::cout << "${NL}";\n}\n`,
         expected: outs.join(' '),
         wrong: [wrongShift.join(' '), stmts.map((s, i) => outs[i] + (s.includes('++') ? 1 : 0)).join(' '), stmts.map((s, i) => outs[i] - (s.includes('++') ? 1 : 0)).join(' ')],
+        wrongWhy: ["Postfix returns the old value and prefix the new one; c.v reads the current state.", "Postfix increments after returning a copy, so (c++).v is the old value.", "Prefix increments first, so (++c).v is the new value."],
         explain: 'operator++() (prefix) increments and returns the updated object; operator++(int) (postfix, the dummy int tells them apart) returns a copy of the OLD value and then increments. Reading c.v shows the current state.',
       };
     },
@@ -189,7 +192,7 @@ module.exports = [
   {
     id: 'operator-overload-compile', topic: 'Operator overloading rules', minStd: '98', kind: 'compile',
     build(R) {
-      const ERR = /no match|must have|invalid operands|argument of class|not declared|no operator|ambiguous/i;
+      const ERR = /no match|must have|cannot have more than one|invalid operands|argument of class|not declared|no operator|ambiguous/i;
       const cases = [
         { ok: true, code: 'struct A {\n    int v;\n    A operator+(int x) const { A r = *this; r.v += x; return r; }\n};\n\nint main() {\n    A a = {1};\n    A b = a + 2;\n    (void)b;\n}\n', why: 'a + 2 calls the member a.operator+(2).' },
         { ok: false, code: 'struct A {\n    int v;\n    A operator+(int x) const { A r = *this; r.v += x; return r; }\n};\n\nint main() {\n    A a = {1};\n    A b = 2 + a;\n    (void)b;\n}\n', why: 'For 2 + a the left operand is an int, so a member operator+ of A cannot be used (no implicit conversion on the left operand of a member operator). A non-member operator+(int, const A&) would be needed.' },

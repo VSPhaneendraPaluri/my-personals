@@ -107,7 +107,8 @@ No npm dependencies. Requires internet for the default backend.
 ## Question templates
 
 Every template in `lib/templates/` is a parametric generator (`build(R, S, ctx)`) whose
-concrete question is compiled and run before it is served. 75 templates in total:
+concrete question is compiled and run before it is served. **85 templates** in total,
+all confirmed under both g++ 13 and Clang 18 with `-pedantic-errors`.
 
 | File | Focus |
 |---|---|
@@ -115,16 +116,32 @@ concrete question is compiled and run before it is served. 75 templates in total
 | `tpoly.js` | Polymorphism & inheritance: slicing, virtual destructors, virtual calls in constructors, default arguments, name hiding, diamond / virtual inheritance, `dynamic_cast` / `typeid`, abstract classes, access control, `final`, static members |
 | `toverload.js` | Overload resolution ranking, ambiguity & illegal overloads, overriding vs overloading vs hiding, `operator++` prefix/postfix, operator overloading rules |
 | `tstr.js` | C strings (`sizeof` vs `strlen`, `<cstring>`), char arithmetic, `std::string` constructors / find / modify / compare / conversions, `operator+` and `char*` conversion errors |
+| `tgaps.js` | Exception unwinding order, catch matching, constructor throw, `vector` erase patterns, integer conversion traps, short-circuit evaluation, linkage / ODR, specialisation vs overload, template deduction priority, temporary lifetime |
+| `meta.js` | Domain tags, difficulty range and cppreference links for every template; validated and attached at load time |
 
 Low-variety templates (`shared-ptr-count`, `copy-vs-move`, `override-compile`,
 `auto-return-compile`) were expanded with extra parametric cases (aliasing constructor,
 copy/move/reset sequences, `weak_ptr::lock`, assignment vs construction, NRVO / `return
 std::move`, a dozen `override` mismatches, many deduction conflicts).
 
+All authored distractors carry a `wrongWhy` explanation shown to the learner after they
+answer. The distractor quality gate (`test/validate-distractors.js`) enforces ≥ 66%
+authored-distractor share per template; current mean is ~91%.
+
 ## Test templates offline
 
-```
-VERIFY_BACKEND=local node test/validate-templates.js [iterations] [templateIdFilter]
+```bash
+# Validate all 85 templates against local g++ (6 iterations each):
+VERIFY_BACKEND=local node test/validate-templates.js 6
+
+# Cross-check with Clang (answers that differ are implementation-specific):
+GXX=clang++ VERIFY_BACKEND=local node test/validate-templates.js 6
+
+# Check distractor quality offline (no compiler needed):
+node test/validate-distractors.js
+
+# Filter to one template:
+VERIFY_BACKEND=local node test/validate-templates.js 6 override-compile
 ```
 
 ## Deploy on Render

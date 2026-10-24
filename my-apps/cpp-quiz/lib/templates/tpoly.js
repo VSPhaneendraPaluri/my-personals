@@ -28,6 +28,7 @@ module.exports = [
           code: `${inc('iostream')}${head}${used.map((u) => fns[u][0]).join('\n')}\n\nint main() {\n    Derived d;\n${calls.map((c) => `    ${c}(${arg(c)});`).join('\n')}\n    std::cout << "${NL}";\n}\n`,
           expected: exp.join(' '),
           wrong: [exp.map(() => 'Derived').join(' '), exp.map(() => 'Base').join(' '), exp.map((e) => (e === 'Base' ? 'Derived' : 'Base')).join(' ')],
+          wrongWhy: ["References and pointers keep the dynamic type, but a by-value parameter slices the object down to Base.", "Only the by-value call is sliced; references and pointers still reach Derived::who().", "It is the opposite: by-value copies print Base, reference and pointer calls print Derived."],
           explain: 'Passing by value copy-constructs a Base from the Derived object (slicing): the Derived part is cut off, so who() is Base\'s. References and pointers keep the dynamic type, so the virtual call reaches Derived::who().',
         };
       }
@@ -45,6 +46,7 @@ module.exports = [
           code: `${inc('iostream')}${head}int main() {\n    Derived d;\n${picks.map((p) => '    ' + p[0]).join('\n')}\n    std::cout << ${picks.map((p) => p[1]).join(' << " " << ')} << "${NL}";\n}\n`,
           expected: picks.map((p) => p[2]).join(' '),
           wrong: [picks.map((p) => (p[2] === 'Base' ? 'Derived' : 'Base')).join(' '), picks.map(() => 'Derived').join(' '), picks.map(() => 'Base').join(' ')],
+          wrongWhy: ["Copy-initialising a Base from a Derived slices; references and pointers do not.", "Not every variable is a reference: 'Base b = d;' and 'Base c(d);' create plain Base objects.", "References and pointers to d keep the dynamic type, so some of the calls print Derived."],
           explain: 'Only references and pointers preserve the dynamic type. Initialising a Base object from a Derived (Base b = d; Base c(d);) slices: the new object is a plain Base whose virtual calls resolve to Base.',
         };
       }
@@ -53,6 +55,7 @@ module.exports = [
         code: `${inc('iostream', 'vector')}${head}int main() {\n    Derived d;\n    std::vector<Base> objs;\n    std::vector<Base*> ptrs;\n    objs.push_back(d);\n    ptrs.push_back(&d);\n    std::cout << objs[0].who() << " " << ptrs[0]->who() << "${NL}";\n}\n`,
         expected: 'Base Derived',
         wrong: ['Derived Derived', 'Base Base', 'Derived Base'],
+        wrongWhy: ["vector<Base> stores Base objects: push_back(d) slices d.", "The vector of pointers still refers to the original Derived object, so virtual dispatch finds Derived::who().", "It is the other way round: the by-value vector slices, the pointer vector does not."],
         explain: 'std::vector<Base> stores Base objects by value, so push_back(d) slices the Derived. A vector of Base* keeps the pointers to the original Derived object, so the virtual call dispatches dynamically.',
       };
     },
@@ -76,6 +79,7 @@ module.exports = [
         code: `${inc('iostream')}${cls}\nint main() {\n    ${names[j]}* p = new ${names[k]};\n    delete p;\n    std::cout << "${NL}";\n}\n`,
         expected: exp.join(' '),
         wrong: [wrongPartial.join(' '), [...ctors, ...names.slice(0, k + 1).map((x) => '~' + x)].join(' '), [...ctors, '~' + names[k]].join(' ')],
+        wrongWhy: ["With a virtual destructor, delete through a base pointer runs the destructor of the dynamic type and then every base destructor, not just the pointer type's.", "Destructors run in the reverse order of construction: the most derived class first.", "After the most derived destructor, the base class destructors run as well."],
         explain: `The destructor is virtual (declared virtual in ${names[0]}, and virtual-ness is inherited by every overrider), so delete through a ${names[j]}* runs the destructor of the dynamic type ${names[k]} first and then each base destructor in reverse order of construction.`,
       };
     },
@@ -99,6 +103,7 @@ module.exports = [
         code: `${inc('iostream')}${cls.join('\n')}\nint main() {\n    {\n        ${names[n - 1]} obj;\n    }\n    std::cout << "${NL}";\n}\n`,
         expected: exp.join(' '),
         wrong: [Array(2 * n).fill(dynamicAll).join(' '), [...exp].reverse().join(' '), [...exp.slice(0, n), ...exp.slice(0, n).reverse().map(() => dynamicAll)].join(' ')],
+        wrongWhy: ["During construction the dynamic type is the class being constructed, so a virtual call does not reach a more derived override.", "Construction happens base first and destruction in reverse, so the sequence is not simply reversed.", "In the destructor phase the dynamic type shrinks level by level as well."],
         explain: 'While a constructor (or destructor) of class X runs, the object\'s dynamic type is X, so a virtual call inside it resolves to X\'s version (or the nearest base-class version if X does not override it), never to a further-derived override.',
       };
     },
@@ -120,6 +125,7 @@ module.exports = [
         code: `${inc('iostream')}struct Base {\n    virtual void f(int x = ${A}) { std::cout << "Base" << x << " "; }\n    virtual ~Base() {}\n};\n\nstruct Derived : Base {\n    void f(int x = ${B}) { std::cout << "Derived" << x << " "; }\n};\n\nint main() {\n    Derived d;\n    Base* pb = &d;\n    Derived* pd = &d;\n    Base& rb = d;\n${picks.map((c) => `    ${c[0]};`).join('\n')}\n    std::cout << "${NL}";\n}\n`,
         expected: picks.map(out).join(' '),
         wrong: [picks.map(alt).join(' '), picks.map((c) => `Base${c[2]}`).join(' '), picks.map((c) => `Base${c[1] === 'Base default' ? A : c[1] === 'Derived default' ? B : c[2]}`).join(' ')],
+        wrongWhy: ["Default arguments come from the static type of the expression, not from the dynamic type.", "The function body that runs comes from the dynamic type (Derived); only the defaults are static.", "Do not mix the two up: the body is dynamic, the default argument is static."],
         explain: 'Which function body runs is decided at run time (always Derived::f here), but a default argument is substituted at compile time from the static type of the expression: through Base* / Base& you get Base\'s default, through Derived* / Derived you get Derived\'s default.',
       };
     },
@@ -140,6 +146,7 @@ module.exports = [
         code: `${inc('iostream')}struct Base {\n    void f(int) { std::cout << "Base::f(int) "; }\n};\n\nstruct Derived : Base {\n${using ? '    using Base::f;\n' : ''}    void f(double) { std::cout << "Derived::f(double) "; }\n};\n\nint main() {\n    Derived d;\n    Base& b = d;\n    d.f(${a1[0]});\n    b.f(${a2[0]});\n    std::cout << "${NL}";\n}\n`,
         expected: `${viaD(a1)} ${viaB(a2)}`,
         wrong: [`${flipD(a1)} ${viaB(a2)}`, `${viaD(a1)} Derived::f(double)`, `${flipD(a1)} Derived::f(double)`],
+        wrongWhy: ["Overload resolution depends on whether a using-declaration exposes Base::f(int) in Derived.", "A Base& only sees Base's declarations: Derived::f(double) is not visible through it.", "Both parts need checking: name hiding for the d.f call, and the static type Base& for the other call."],
         explain: using
           ? 'The using-declaration brings Base::f(int) into Derived, so d.f(...) does normal overload resolution between f(int) and f(double) (exact/promotion beats conversion). A Base& only sees Base::f(int), whatever the argument type.'
           : 'Declaring f in Derived hides every Base::f (name hiding, not overriding: f is not virtual and the signatures differ). d.f(...) can only see Derived::f(double); a Base& looks up f in Base and finds only f(int).',
@@ -167,6 +174,7 @@ module.exports = [
         code: `${inc('iostream')}${cls(root)}\n${cls(x, root, vx)}\n${cls(y, root, vy)}\nstruct ${d} : ${x}, ${y} {\n    ${d}() { std::cout << "${d} "; }\n${dtors ? `    ~${d}() { std::cout << "~${d} "; }\n` : ''}};\n\nint main() {\n    { ${d} obj; }\n    std::cout << "${NL}";\n}\n`,
         expected: exp.join(' '),
         wrong: [dtors ? [...naive, ...[...naive].reverse().map((s) => '~' + s)].join(' ') : naive.join(' '), dtors ? [...seq, ...seq.map((s) => '~' + s)].join(' ') : [...seq].reverse().join(' '), dtors ? [...seq.slice(0, -1), ...rev].join(' ') : [root, x, root, y, d].join(' ')],
+        wrongWhy: ["A virtual base is constructed once, first; every non-virtual path constructs its own copy of the shared base.", "The virtual base is constructed before the direct bases, not between them.", "Direct bases are constructed in declaration order, and destruction is the exact reverse."],
         explain: 'Virtual base subobjects are constructed first, once, by the most-derived class. Then the direct bases are constructed in declaration order; every NON-virtual inheritance path gets its own copy of the shared base, constructed right before the class that derives from it. Destruction runs in exactly the reverse order.',
       };
     },
@@ -193,6 +201,7 @@ module.exports = [
         code: `${inc('iostream', 'typeinfo')}struct Animal { virtual ~Animal() {} };\nstruct Dog : Animal {};\nstruct Cat : Animal {};\nstruct Puppy : Dog {};\n\nint main() {\n    Animal* p = new ${obj};\n    std::cout << ${checks.map((c) => `(${c[0]})`).join(' << " " << ')} << "${NL}";\n    delete p;\n}\n`,
         expected: exp.join(' '),
         wrong: [exp.map((e) => (e === '1' ? '0' : '1')).join(' '), checks.map((c) => (c[0].startsWith('typeid') ? (isa(obj, c[0].match(/typeid\((\w+)\)$/)[1]) ? '1' : '0') : (c[1](obj) ? '0' : '1'))).join(' '), exp.map((_, i) => (i === 0 ? (exp[0] === '1' ? '0' : '1') : exp[i])).join(' ')],
+        wrongWhy: ["dynamic_cast succeeds for the exact type and its base classes (an is-a test).", "typeid compares the exact dynamic type, while dynamic_cast follows the inheritance relation.", "Check each test against the real dynamic type of the object."],
         explain: 'dynamic_cast<T*> succeeds when the dynamic type is T or derives from T (an is-a test), and yields a null pointer otherwise. typeid(*p) == typeid(T) is an exact-type test: a Puppy is-a Dog, but its typeid is not Dog\'s.',
       };
     },
@@ -286,6 +295,7 @@ module.exports = [
         code: `${inc('iostream')}struct Base {\n    static int n;\n    Base() { ++n; }\n    Base(const Base&) { ++n; }\n    virtual ~Base() { --n; }\n};\n\nint Base::n = 0;\n\nstruct Derived : Base {};\n\nint main() {\n    Base a;\n    {\n${ops.join('\n')}\n        std::cout << Base::n << " ";\n    }\n    std::cout << Base::n << "${NL}";\n}\n`,
         expected: `${outer + inner} ${outer}`,
         wrong: [`${outer + inner + 1} ${outer}`, `${outer + inner} ${outer + inner}`, `${outer + inner - 1} ${outer - 1 < 1 ? 0 : outer}`],
+        wrongWhy: ["Count every live object, including the ones created by copying and slicing.", "When the inner block ends, its objects are destroyed and the counter falls back.", "The count includes every copy that is still alive when it is printed."],
         explain: 'Base::n is one static counter shared by Base and every class derived from it. Every constructor of a Derived runs a Base constructor (the implicit copy constructor of Derived calls Base\'s copy constructor, so copies and slices are counted too); temporaries and delete-d objects are balanced by the destructor. Objects declared in the inner block are destroyed when it ends.',
       };
     },

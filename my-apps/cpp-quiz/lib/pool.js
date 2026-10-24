@@ -9,34 +9,10 @@ const Q = require('./question');
 const TARGET = Number(process.env.POOL_TARGET || 5);
 const FLAGS  = '-pedantic-errors';
 
-// ── domain keyword map (mirrors server.js — used for template filtering) ─────
-const DOMAIN_KEYWORDS = {
-  lifetime:    ['unique_ptr','shared_ptr','weak_ptr','raii','ownership','smart pointer','dangle','destructor','copy','move','rule of'],
-  move:        ['move','rvalue','&&','copy vs move','value category','forward'],
-  classes:     ['virtual','override','vtable','constructor','destructor','class','struct','oop','slicing','inheritance','polymorphism','overrid','hiding','abstract','dynamic_cast','hierarchy','base class','derived'],
-  templates:   ['template','generic','variadic','sfinae','enable_if','concept','deduction','specialization','auto parameter'],
-  constexpr:   ['constexpr','static_assert','compile-time','type_traits','consteval','constant'],
-  types:       ['auto','decltype','cast','const','type','nullptr','enum','scoped enum','conversion','sizeof','fundamental'],
-  expressions: ['operator','precedence','evaluation order','overload','adl','increment','decrement','arithmetic','bitwise'],
-  stl:         ['vector','map','set','string','array','algorithm','iterator','sort','find','container'],
-  lambdas:     ['lambda','capture','closure','std::function','callable','generic lambda','init-capture'],
-  concurrency: ['thread','atomic','mutex','noexcept','exception','throw','unwinding'],
-};
-
-function matchesDomain(t, domainKey) {
-  if (!domainKey) return true;
-  const kws = DOMAIN_KEYWORDS[domainKey] || [];
-  const hay = ((t.topic || '') + ' ' + (t.id || '')).toLowerCase();
-  return kws.some((k) => hay.includes(k));
-}
-
-// difficulty proxy: 1=C++98/03  2=C++11/14  3=C++17
-function templateDiff(t) {
-  const s = t.minStd || '98';
-  if (s === '98' || s === '03') return 1;
-  if (s === '11' || s === '14') return 2;
-  return 3;
-}
+// ── domain & difficulty come from explicit template metadata (lib/templates/meta.js) ──
+const matchesDomain = (t, domainKey) => !domainKey || (t.domains || []).includes(domainKey);
+const templateDiff = (t) => t.difficulty || 2;
+const canBeDiff = (t, d) => !d || (t.diffRange ? t.diffRange[0] <= d && d <= t.diffRange[1] : templateDiff(t) === d);
 
 // goal-based eligibility check on a built question
 function eligibleForGoal(q, goal) {
@@ -69,16 +45,13 @@ class Pool {
     const comp = await this.be.resolveCompiler();
     const { goal = 'learn', domain = '', diff = 0 } = filters;
 
-    // Base eligibility: standard rank + gcc version + domain
-    let eligible = TEMPLATES.filter((t) =>
-      rankOf(t.minStd) <= S.rank &&
-      (t.gcc || 0) <= comp.major &&
-      matchesDomain(t, domain)
-    );
-    if (!eligible.length) eligible = TEMPLATES.filter((t) => rankOf(t.minStd) <= S.rank && (t.gcc || 0) <= comp.major);
-
-    // Difficulty filter (0 = all)
-    if (diff) eligible = eligible.filter((t) => templateDiff(t) === diff) || eligible;
+    // Base eligibility: standard rank + gcc version, then the requested domain and difficulty.
+    // A filter that would leave nothing is relaxed (domain first) instead of failing the request.
+    const base = TEMPLATES.filter((t) => rankOf(t.minStd) <= S.rank && (t.gcc || 0) <= comp.major);
+    let eligible = base.filter((t) => matchesDomain(t, domain) && canBeDiff(t, diff));
+    if (!eligible.length) eligible = base.filter((t) => canBeDiff(t, diff));
+    if (!eligible.length) eligible = base.filter((t) => matchesDomain(t, domain));
+    if (!eligible.length) eligible = base;
 
     // Recency anti-repeat
     const recent = this.recent.get(S.key);
@@ -89,7 +62,7 @@ class Pool {
     const bag = list.flatMap((t) => {
       let w = t.weight || 1;
       if (goal === 'lawyer')    w *= (t.kind === 'compile' ? 3 : 1);
-      if (goal === 'interview') w *= (templateDiff(t) >= 2 ? 2 : 1);
+      if (goal === 'interview') w *= ((t.diffRange ? t.diffRange[1] : templateDiff(t)) >= 2 ? 2 : 1);
       if (goal === 'ub')        w *= (((t.topic || '') + (t.id || '')).toLowerCase().includes('ub') ? 3 : 1);
       return Array(w).fill(t);
     });
@@ -97,7 +70,10 @@ class Pool {
     const tpl = R.pick(bag);
     recent.push(tpl.id); if (recent.length > 6) recent.shift();
 
-    const q = Q.build(tpl, S, { gcc: comp.major });
+    let q = Q.build(tpl, S, { gcc: comp.major });
+    // A template can span difficulty levels (one per variant): rebuild a few times to honour the filter.
+    for (let i = 0; diff && q.difficulty !== diff && i < 8; i++) q = Q.build(tpl, S, { gcc: comp.major });
+    if (diff && q.difficulty !== diff) return null;
 
     // Goal post-build filter (ub mode needs explain text)
     if (!eligibleForGoal(q, goal)) return null;

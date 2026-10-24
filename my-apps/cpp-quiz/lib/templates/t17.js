@@ -13,6 +13,7 @@ module.exports = [
         code: `${inc('iostream', 'map')}int main() {\n    std::map<char, int> m = {${entries.map(([c, v]) => `{'${c}', ${v}}`).join(', ')}};\n    for (auto& [key, value] : m) value *= ${k};\n    for (const auto& [key, value] : m) std::cout << key << "=" << value << " ";\n    std::cout << "${NL}";\n}\n`,
         expected: sorted.map(([c, v]) => `${c}=${v * k}`).join(' '),
         wrong: [sorted.map(([c, v]) => `${c}=${v}`).join(' '), entries.map(([c, v]) => `${c}=${v * k}`).join(' '), [...sorted].reverse().map(([c, v]) => `${c}=${v * k}`).join(' ')],
+        wrongWhy: ["The first loop uses auto&, so the stored values are really modified.", "std::map iterates in key order, not insertion order.", "The map is ordered by ascending key, not descending."],
         explain: 'std::map keeps keys sorted. `auto&` in the first loop binds to the real elements (value is a reference to the mapped value), so they are multiplied in place.',
       };
     },
@@ -26,6 +27,7 @@ module.exports = [
         code: `${inc('iostream', 'utility')}int main() {\n    std::pair<int, int> p{${A}, ${B}};\n    auto${ref ? '&' : ''} [x, y] = p;\n    x += ${K};\n    std::cout << p.first << " " << x << " " << y << "${NL}";\n}\n`,
         expected: `${ref ? A + K : A} ${A + K} ${B}`,
         wrong: [`${ref ? A : A + K} ${A + K} ${B}`, `${A} ${A} ${B}`, `${A + K} ${A + K} ${B + K}`],
+        wrongWhy: ["Whether p changes depends on auto (a copy) versus auto& (a reference).", "x += K modifies the binding x, so the printed x is changed.", "Only x is modified; y is not."],
         explain: ref ? '`auto&` makes the bindings refer to the members of p, so modifying x modifies p.first.' : '`auto` first copies p into a hidden object; x refers to that copy, so p is untouched.',
       };
     },
@@ -40,6 +42,7 @@ module.exports = [
         code: `${inc('iostream', 'set')}int main() {\n    std::set<int> s;\n${vals.map((v) => `    if (auto [it, ok] = s.insert(${v}); ok) std::cout << "1 "; else std::cout << "0 ";`).join('\n')}\n    std::cout << s.size() << "${NL}";\n}\n`,
         expected: `${res.join(' ')} ${seen.size}`,
         wrong: [`${res.map(() => 1).join(' ')} ${vals.length}`, `${res.map((r) => 1 - r).join(' ')} ${seen.size}`, `${res.join(' ')} ${vals.length}`],
+        wrongWhy: ["insert reports false for a value already in the set, so not every insertion succeeds.", "The bool is true when the element was inserted and false when it was already present.", "A set stores each value once, so size() counts the distinct values."],
         explain: 'set::insert returns {iterator, bool}; the bool is false when the value was already present, and duplicates are not stored.',
       };
     },
@@ -56,6 +59,7 @@ module.exports = [
         code: `${inc('iostream')}template <typename... Ts>\nauto f(Ts... ts) {\n    return (${left ? '... - ts' : 'ts - ...'});\n}\n\nint main() {\n    std::cout << f(${v.join(', ')}) << "${NL}";\n}\n`,
         expected: `${val}`,
         wrong: [`${other}`, `${v.reduce((a, b) => a + b)}`, `${val + 2}`],
+        wrongWhy: ["Left and right folds of a non-associative operator give different results.", "The operator is subtraction, not addition.", "Recompute with the exact fold direction: (... - ts) is ((a-b)-c)-d, (ts - ...) is a-(b-(c-d))."],
         explain: left ? '`(... - ts)` is a left fold: ((a - b) - c) - d.' : '`(ts - ...)` is a right fold: a - (b - (c - d)).',
       };
     },
@@ -69,6 +73,7 @@ module.exports = [
         code: `${inc('iostream', 'optional')}int main() {\n    std::optional<int> a;\n    std::optional<int> b = ${x};\n    std::cout << a.value_or(${d}) << " " << b.value_or(${d}) << " " << a.has_value() << b.has_value() << "${NL}";\n}\n`,
         expected: `${d} ${x} 01`,
         wrong: [`${x} ${d} 10`, `${d} ${d} 00`, `${d} ${x} 10`],
+        wrongWhy: ["a is the empty optional (so the fallback), b holds x: the order is a then b.", "b holds a value, so b.value_or(d) is x and its has_value() is true.", "The flags print a's then b's has_value(): a is empty (0), b is engaged (1)."],
         explain: 'value_or returns the contained value if present, otherwise the fallback. A default-constructed optional is empty.',
       };
     },
@@ -82,7 +87,8 @@ module.exports = [
         kind: 'output',
         code: `${inc('iostream', 'string', 'type_traits')}template <typename T>\nconst char* kind(T) {\n    if constexpr (std::is_integral_v<T>) return "integral";\n    else if constexpr (std::is_floating_point_v<T>) return "floating";\n    else if constexpr (std::is_pointer_v<T>) return "pointer";\n    else return "other";\n}\n\nint main() {\n    int x = 0;\n    (void)x;\n${picks.map((p) => `    std::cout << kind(${p[0]}) << " ";`).join('\n')}\n    std::cout << "${NL}";\n}\n`,
         expected: picks.map((p) => p[1]).join(' '),
-        wrong: [picks.map((p) => (p[0] === '"text"' ? 'other' : p[1])).join(' '), picks.map((p) => (p[0] === 'nullptr' ? 'pointer' : p[0] === "'c'" || p[0] === 'true' ? 'other' : p[1])).join(' ')],
+        wrong: [picks.map((p) => (p[0] === '"text"' ? 'other' : p[1])).join(' '), picks.map((p) => (p[0] === 'nullptr' ? 'pointer' : p[0] === "'c'" || p[0] === 'true' ? 'other' : p[1])).join(' '), picks.map((p) => (p[0] === 'std::string("s")' ? 'pointer' : p[1])).join(' '), picks.map((p) => (p[1] === 'integral' ? 'floating' : p[1] === 'floating' ? 'integral' : p[1])).join(' '), [...picks].reverse().map((p) => p[1]).join(' ')],
+        wrongWhy: ["A string literal passed by value decays to const char*, which is a pointer type.", "char and bool are integral types, and std::nullptr_t is neither a pointer nor an integral type.", "std::string is a class type, not a pointer: it is neither integral, floating nor pointer.", "Integral and floating-point are different categories: 1, 'c' and true are integral, 2.0 and 2.5f are floating.", "The calls are printed in the order they appear in the statement, not reversed."],
         explain: 'T is deduced by value: "text" decays to const char* (a pointer); char and bool are integral types; std::nullptr_t is not a pointer type, so it falls to "other".',
       };
     },
@@ -97,6 +103,7 @@ module.exports = [
         code: `${inc('iostream', 'string', 'variant')}int main() {\n    std::variant<int, double, std::string> v;\n    std::cout << v.index() << " ";\n${picks.map((p) => `    v = ${p[0]};\n    std::cout << v.index() << " ";`).join('\n')}\n    std::cout << "${NL}";\n}\n`,
         expected: `0 ${picks.map((p) => p[1]).join(' ')}`,
         wrong: [`1 ${picks.map((p) => p[1]).join(' ')}`, `0 ${picks.map((p) => (p[1] + 1) % 3).join(' ')}`, `0 ${picks.map((p) => (p[0] === "'c'" ? 1 : p[1])).join(' ')}`],
+        wrongWhy: ["A default-constructed variant holds its first alternative (index 0).", "Assignment selects the best-matching alternative by overload resolution; indices follow the declaration order.", "A char converts to int (promotion), so it selects the int alternative."],
         explain: 'A default-constructed variant holds its first alternative (index 0). Assigning picks the best-matching alternative: int and char go to int, double and float to double.',
       };
     },
@@ -112,6 +119,7 @@ module.exports = [
         code: `${inc('iostream', 'string_view')}int main() {\n    std::string_view sv = "${w}";\n    sv.remove_prefix(${p});\n    sv.remove_suffix(${s});\n    std::cout << sv << " " << sv.size() << "${NL}";\n}\n`,
         expected: `${r} ${r.length}`,
         wrong: [`${w.slice(p)} ${w.length - p}`, `${w.slice(0, w.length - s)} ${w.length - s}`, `${w.slice(p + 1, w.length - s)} ${r.length - 1}`],
+        wrongWhy: ["remove_prefix(p) narrows the start of the view as well.", "remove_suffix also drops characters at the end.", "The prefix removal starts at index p, not p + 1."],
         explain: 'remove_prefix/remove_suffix just narrow the view; no characters are copied or modified.',
       };
     },
@@ -132,6 +140,7 @@ module.exports = [
         code: `${inc('algorithm', 'iostream', 'numeric')}int main() {\n    std::cout ${exprs.map((e) => `<< ${e[0]}`).join(' << " " ')} << "${NL}";\n}\n`,
         expected: exprs.map((e) => e[1]).join(' '),
         wrong: [exprs.map((e) => e[1] + 1).join(' '), `${a * b} ${gcd(a, b)} ${exprs[2][1]}`, `${exprs[0][1]} ${exprs[1][1]} ${v}`],
+        wrongWhy: ["Every value is off by one: gcd, lcm and clamp return exact results.", "lcm(a, b) is a * b / gcd(a, b), not a * b.", "clamp(v, lo, hi) returns lo or hi when v is outside the range, not v itself."],
         explain: 'gcd and lcm live in <numeric> (C++17); clamp(v, lo, hi) returns v limited to the range [lo, hi].',
       };
     },
@@ -148,6 +157,7 @@ module.exports = [
         code: `${inc('iostream')}int main() {\n    int i = ${start};\n    std::cout << ${toks.join(' << " " << ')} << "${NL}";\n}\n`,
         expected: out.join(' '),
         wrong: [rev.join(' '), out.map((v) => v + 1).join(' '), toks.map(() => i).join(' ')],
+        wrongWhy: ["Since C++17 the operands of << are evaluated strictly left to right.", "Each term sees the side effects of the ones before it; recount the increments.", "The side effects happen as the operands are evaluated, so the values are not all the starting value."],
         explain: 'Since C++17 the operands of << are evaluated strictly left to right, so each term sees the side effects of the ones before it.',
       };
     },

@@ -11,37 +11,6 @@ const backend = createBackend();
 const pool    = new Pool(backend);
 const served  = new Map(); // id -> question
 
-// ── domain taxonomy (10 tags) maps template topics via keyword list ──────────
-const DOMAIN_KEYWORDS = {
-  lifetime:    ['unique_ptr','shared_ptr','weak_ptr','raii','ownership','smart pointer','dangle','leak','destructor','copy','move','rule of'],
-  move:        ['move','rvalue','&&','copy vs move','value category','forward','perfect'],
-  classes:     ['virtual','override','vtable','constructor','destructor','class','struct','oop','slicing','inheritance','polymorphism','overrid','hiding','abstract','dynamic_cast','hierarchy','base class','derived'],
-  templates:   ['template','generic','variadic','sfinae','enable_if','concept','deduction','specialization','auto parameter'],
-  constexpr:   ['constexpr','static_assert','compile-time','type_traits','consteval','constant'],
-  types:       ['auto','decltype','cast','const','type','nullptr','enum','scoped enum','conversion','sizeof','fundamental'],
-  expressions: ['operator','precedence','evaluation order','overload','adl','increment','decrement','arithmetic','bitwise','ternary'],
-  stl:         ['vector','map','set','string','array','algorithm','iterator','sort','find','container','push_back','emplace'],
-  lambdas:     ['lambda','capture','closure','std::function','callable','generic lambda','init-capture'],
-  concurrency: ['thread','atomic','mutex','noexcept','exception','throw','unwinding','volatile'],
-};
-
-function questionMatchesDomain(q, domainKey) {
-  if (!domainKey) return true;
-  const kws = DOMAIN_KEYWORDS[domainKey] || [];
-  const hay = ((q.topic || '') + ' ' + (q.code || '')).toLowerCase();
-  return kws.some((k) => hay.includes(k));
-}
-
-// ── difficulty bands — mapped from template minStd as a proxy ───────────────
-// Until templates carry an explicit difficulty field, derive it:
-// 1 = topic exists in C++98/03  2 = C++11/14 topic  3 = C++17 topic
-function templateDifficulty(t) {
-  const s = t.minStd || '98';
-  if (s === '98' || s === '03') return 1;
-  if (s === '11' || s === '14') return 2;
-  return 3; // 17+
-}
-
 // ── cleanup stale served questions every 10 min ──────────────────────────────
 setInterval(() => {
   const cut = Date.now() - 2 * 3600e3;
@@ -99,6 +68,7 @@ const server = http.createServer(async (req, res) => {
         return send(res, 200, {
           id: q.id, std: q.std, kind: q.kind, topic: q.topic,
           code: q.code, options: q.options, flags: q.flags,
+          domains: q.domains, difficulty: q.difficulty,
           compiler: q.compiler, keepWhitespace: q.keepWhitespace,
           stats: pool.stats,
         });
@@ -110,7 +80,13 @@ const server = http.createServer(async (req, res) => {
         const { id, choice } = JSON.parse(raw || '{}');
         const q = served.get(id);
         if (!q) return send(res, 410, { error: 'This question has expired. Load a new one.' });
-        return send(res, 200, { correct: Number(choice) === q.correct, answer: q.correct, explain: q.explain, actual: q.actual, link: q.link, compiler: q.compiler, flags: q.flags });
+        const picked = Number(choice);
+        return send(res, 200, {
+          correct: picked === q.correct, answer: q.correct, explain: q.explain, actual: q.actual, link: q.link,
+          compiler: q.compiler, flags: q.flags,
+          why: picked === q.correct ? null : (q.reasons || [])[picked] || null,   // why the chosen option is tempting but wrong
+          reference: q.reference || null, difficulty: q.difficulty,
+        });
       }
 
       return send(res, 404, { error: 'not found' });
@@ -135,4 +111,3 @@ server.listen(PORT, () => console.log(
   (process.env.VERIFY_BACKEND === 'local' ? 'local g++' : 'godbolt.org')
 ));
 
-module.exports = { DOMAIN_KEYWORDS, questionMatchesDomain, templateDifficulty };

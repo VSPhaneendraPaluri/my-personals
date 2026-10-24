@@ -85,6 +85,7 @@
       <span class="chip-label" id="goal-chip"></span>
       <span class="chip-label chip-label--std" id="std-chip"></span>
       <span class="chip-label" id="topic"></span>
+      <span class="chip-label chip-label--diff" id="diff-label"></span>
       <span class="flags" id="flags"></span>
     </div>
     <h2 id="prompt"></h2>
@@ -93,6 +94,7 @@
 
     <div id="result" class="result" hidden>
       <div id="verdict"></div>
+      <p id="why" class="why" hidden></p>
       <p id="explain"></p>
       <details open>
         <summary id="actual-title">Real result from Compiler Explorer</summary>
@@ -100,6 +102,7 @@
       </details>
       <div class="actions">
         <a id="link" target="_blank" rel="noopener" hidden>Open in Compiler Explorer ↗</a>
+        <a id="ref" target="_blank" rel="noopener" hidden>Reference (cppreference) ↗</a>
         <button id="next" class="primary">Next question →</button>
       </div>
     </div>

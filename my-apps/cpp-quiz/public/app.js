@@ -20,6 +20,8 @@ const DOMAINS = [
   { key: 'concurrency', label: 'Concurrency & Exceptions' },
 ];
 
+const DIFF_LABELS = { 1: 'Beginner', 2: 'Intermediate', 3: 'Advanced' };
+
 // ── helpers ───────────────────────────────────────────────────────────────────
 const $ = (id) => document.getElementById(id);
 const J = async (u, o) => {
@@ -174,6 +176,7 @@ function show(q) {
   status(''); st.q = q; st.answered = false;
   $('card').hidden = false; $('result').hidden = true;
   $('topic').textContent = q.topic;
+  $('diff-label').textContent = DIFF_LABELS[q.difficulty] || '';
   $('flags').textContent = `g++ ${q.flags}`;
   $('prompt').textContent = q.kind === 'compile'
     ? `Does this program compile with ${q.flags}?`
@@ -215,7 +218,10 @@ async function answer(i) {
   $('score').hidden = false;
   $('verdict').textContent = r.correct ? '✓ Correct' : '✗ Not quite';
   $('verdict').className = r.correct ? 'ok' : 'bad';
+  const why = $('why'); why.hidden = !r.why;
+  if (r.why) why.textContent = 'Why that is tempting: ' + r.why;
   $('explain').textContent = r.explain;
+  const ref = $('ref'); ref.hidden = !r.reference; if (r.reference) ref.href = r.reference;
   $('actual-title').textContent = st.q.kind === 'compile' ? 'Compiler Explorer result' : 'Real output';
   $('actual').textContent = r.actual || '(no output)';
   const l = $('link'); l.hidden = !r.link; if (r.link) l.href = r.link;

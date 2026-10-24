@@ -16,7 +16,8 @@ module.exports = [
         kind: 'output',
         code: `${inc('iostream', 'string')}int main() {\n    auto add = [](auto a, auto b) { return a + b; };\n    std::cout ${picks.map((p) => `<< ${p[0]}`).join(' << " " ')} << "${NL}";\n}\n`,
         expected: picks.map((p) => p[1]).join(' '),
-        wrong: [picks.map((p) => (/^\d+$/.test(p[1]) ? String(Number(p[1]) + 1) : p[1] + '0')).join(' ')],
+        wrong: [picks.map((p) => (/^\d+$/.test(p[1]) ? String(Number(p[1]) + 1) : p[1] + '0')).join(' '), picks.map((p) => (/^\d+\.\d+$/.test(p[1]) ? String(Math.trunc(Number(p[1]))) : p[1])).join(' '), picks.map((p) => (p[0].includes("'a'") ? String.fromCharCode(Number(p[1])) : p[1])).join(' '), [...picks].reverse().map((p) => p[1]).join(' ')],
+        wrongWhy: ["Every call deduces its own types: apply the usual arithmetic conversions to each call separately.", "A generic lambda deduces double for the call with a double argument, so the fractional part is not truncated away.", "char + int is an int addition (the char is promoted), so the number is printed rather than a character.", "The calls are printed in the order they appear in the statement, not reversed."],
         explain: 'A generic lambda has a templated operator(), so each call deduces its own types: int+int stays int, int+double is double, char+int promotes to int (so \'a\'+k prints a number), std::string + const char* concatenates.',
       };
     },
@@ -38,6 +39,7 @@ module.exports = [
         code: `${inc('iostream')}int main() {\n    int x = ${X};\n    ${decl}\n    r += 10;\n    std::cout << x << " " << r << "${NL}";\n}\n`,
         expected: `${isRef ? X + 10 : X} ${X + 10}`,
         wrong: [`${isRef ? X : X + 10} ${X + 10}`, `${X} ${X}`, `${X + 10} ${X}`],
+        wrongWhy: ["Whether x also changes depends on whether r is a reference: auto copies, auto& and decltype(auto) on (x) refer to x.", "r += 10 modifies r, so r certainly changes.", "r is the one that is incremented, and the values are printed as x first, then r."],
         explain: '`auto` drops references (always a copy); `auto&` is a reference; `decltype(auto)` keeps the exact type of the expression, and `(x)` is an lvalue expression so it yields int&, while plain `x` yields int.',
       };
     },
@@ -53,6 +55,7 @@ module.exports = [
         code: `${inc('iostream')}int main() {\n    int a = ${lit};\n    int b = 0${oct.toString(8)};\n    int c = 0x${hex.toString(16)};\n    std::cout << a << " " << b << " " << c << " " << a + b + c << "${NL}";\n}\n`,
         expected: `${bits} ${oct} ${hex} ${bits + oct + hex}`,
         wrong: [`${bits} ${parseInt(oct.toString(8), 10)} ${hex} ${bits + parseInt(oct.toString(8), 10) + hex}`, `${bits} ${oct} ${hex} ${bits + oct}`],
+        wrongWhy: ["A leading 0 means octal: the digits are read in base 8, not base 10.", "The sum a + b + c includes all three values, not just two."],
         explain: '0b… is a binary literal (C++14), the apostrophe is a digit separator that is ignored, a leading 0 means octal, and 0x means hexadecimal.',
       };
     },
@@ -66,6 +69,7 @@ module.exports = [
         code: `${inc('iostream', 'utility')}int main() {\n    int v = ${x};\n    int a = std::exchange(v, ${y});\n    int b = std::exchange(v, ${z});\n    std::cout << a << " " << b << " " << v << "${NL}";\n}\n`,
         expected: `${x} ${y} ${z}`,
         wrong: [`${y} ${z} ${z}`, `${x} ${y} ${y}`, `${z} ${y} ${x}`],
+        wrongWhy: ["exchange RETURNS the old value, so a holds what v held before the first call.", "The second call returns what the first call stored; v ends with the last stored value.", "The returned values come in call order, with the final value of v last."],
         explain: 'std::exchange stores the new value and returns the old one.',
       };
     },
@@ -80,6 +84,7 @@ module.exports = [
           code: `${inc('iostream')}int main() {\n    int x = ${x};\n    auto f = [y = x * ${k}]() { return y + 1; };\n    x = ${z};\n    std::cout << f() << " " << x << "${NL}";\n}\n`,
           expected: `${x * k + 1} ${z}`,
           wrong: [`${z * k + 1} ${z}`, `${x * k} ${z}`, `${x * k + 1} ${x}`],
+          wrongWhy: ["The init-capture is evaluated once, when the lambda is created: later assignments to x do not change it.", "The lambda returns y + 1; the +1 matters.", "x was assigned the new value after the lambda was created, so x holds the new value."],
           explain: 'The init-capture `y = x * k` is evaluated once, when the lambda is created, so later changes to x do not affect y.',
         };
       }
@@ -89,6 +94,7 @@ module.exports = [
         code: `${inc('iostream')}int main() {\n    auto next = [n = ${n}]() mutable { return n++; };\n    int a = next();\n    int b = next();\n    int c = next();\n    std::cout << a << " " << b << " " << c << "${NL}";\n}\n`,
         expected: `${n} ${n + 1} ${n + 2}`,
         wrong: [`${n + 1} ${n + 2} ${n + 3}`, `${n} ${n} ${n}`, `${n + 2} ${n + 1} ${n}`],
+        wrongWhy: ["n++ returns the old value, so the first call returns the initial n.", "The mutable lambda's captured n persists between calls: it keeps incrementing.", "The calls happen in order, so the values increase; they do not count down."],
         explain: 'The closure owns n; being `mutable` it can modify it, and the state persists between calls. n++ returns the old value.',
       };
     },
@@ -102,6 +108,7 @@ module.exports = [
         code: `${inc('iostream', 'memory', 'vector')}int main() {\n    auto p = std::make_unique<std::vector<int>>(${n}, ${v});\n    std::cout << p->size() << " " << (*p)[0] << "${NL}";\n}\n`,
         expected: `${n} ${v}`,
         wrong: [`2 ${n}`, `${n} ${n}`, `2 ${v}`],
+        wrongWhy: ["make_unique forwards with parentheses: vector(count, value). Braces would build the two-element list {n, v}.", "The elements all equal the fill value; the count is not the first element.", "make_unique(n, v) builds n elements, so size() is n, not 2."],
         explain: 'make_unique forwards its arguments with parentheses, so this is vector(count, value) — not the initializer-list {n, v}.',
       };
     },
