@@ -20,10 +20,10 @@ function eligibleForGoal(q, goal) {
   if (goal === 'lawyer') return true;          // all kinds; compile-kind weighted in bag
   if (goal === 'interview') return templateDiff({ minStd: q.std }) >= 1; // all diff, skews in bag
   if (goal === 'ub') {
+    if (q.ub) return true;
     const hay = ((q.topic || '') + (q.explain || '')).toLowerCase();
-    return hay.includes('undefined') || hay.includes('ub') ||
-           hay.includes('unspecified') || hay.includes('impl') ||
-           hay.includes('behaviour') || hay.includes('behavior');
+    return hay.includes('undefined') || hay.includes('unspecified') ||
+           hay.includes('impl-defined') || hay.includes('implementation-defined');
   }
   return true;
 }
@@ -49,9 +49,16 @@ class Pool {
     // A filter that would leave nothing is relaxed (domain first) instead of failing the request.
     const base = TEMPLATES.filter((t) => rankOf(t.minStd) <= S.rank && (t.gcc || 0) <= comp.major);
     let eligible = base.filter((t) => matchesDomain(t, domain) && canBeDiff(t, diff));
-    if (!eligible.length) eligible = base.filter((t) => canBeDiff(t, diff));
-    if (!eligible.length) eligible = base.filter((t) => matchesDomain(t, domain));
-    if (!eligible.length) eligible = base;
+    // Relax filters one at a time, but always keep the diff constraint where possible
+    // so the retry loop below doesn't waste builds on guaranteed mismatches.
+    if (!eligible.length && domain) eligible = base.filter((t) => canBeDiff(t, diff));
+    if (!eligible.length && diff)   eligible = base.filter((t) => matchesDomain(t, domain));
+    if (!eligible.length)           eligible = base.filter((t) => canBeDiff(t, diff));
+    if (!eligible.length)           eligible = base;
+
+    // Guard: if the filter yields a trivially small pool (< 3 templates) the fill
+    // loop can never reach TARGET; bail out early rather than hammer Godbolt.
+    if (eligible.length < 3) return null;
 
     // Recency anti-repeat
     const recent = this.recent.get(S.key);
@@ -63,16 +70,26 @@ class Pool {
       let w = t.weight || 1;
       if (goal === 'lawyer')    w *= (t.kind === 'compile' ? 3 : 1);
       if (goal === 'interview') w *= ((t.diffRange ? t.diffRange[1] : templateDiff(t)) >= 2 ? 2 : 1);
-      if (goal === 'ub')        w *= (((t.topic || '') + (t.id || '')).toLowerCase().includes('ub') ? 3 : 1);
-      return Array(w).fill(t);
+      if (goal === 'ub')        w *= (t.ub ? 4 : 1);
+      // Time-machine questions shine in learn and lawyer modes; suppress in interview/ub.
+      if (t.timeMachine) {
+        if (goal === 'interview' || goal === 'ub') w = 0;
+        else w *= 2;
+      }
+      return Array(Math.max(0, w)).fill(t);
     });
 
     const tpl = R.pick(bag);
     recent.push(tpl.id); if (recent.length > 6) recent.shift();
 
     let q = Q.build(tpl, S, { gcc: comp.major });
-    // A template can span difficulty levels (one per variant): rebuild a few times to honour the filter.
-    for (let i = 0; diff && q.difficulty !== diff && i < 8; i++) q = Q.build(tpl, S, { gcc: comp.major });
+    // A template can span difficulty levels (one per variant): retry up to the number
+    // of levels the template spans, not a fixed 8, to avoid wasted builds.
+    if (diff && q.difficulty !== diff) {
+      const maxRetries = tpl.diffRange ? (tpl.diffRange[1] - tpl.diffRange[0]) * 4 : 4;
+      for (let i = 0; i < maxRetries && q.difficulty !== diff; i++)
+        q = Q.build(tpl, S, { gcc: comp.major });
+    }
     if (diff && q.difficulty !== diff) return null;
 
     // Goal post-build filter (ub mode needs explain text)

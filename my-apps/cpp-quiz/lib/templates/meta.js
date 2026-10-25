@@ -1,6 +1,6 @@
 // Explicit per-template metadata (item 3 & 4 of question-quality-improvements.md).
 //   id: [domains, difficulty, reference-path]
-//   domains     one or more of: lifetime move classes templates constexpr types expressions stl lambdas concurrency
+//   domains     one or more of: lifetime move classes templates constexpr types expressions stl lambdas exceptions
 //   difficulty  1 beginner, 2 intermediate, 3 advanced, or [lo, hi] when the template's variants span levels
 //               (a variant can then set `difficulty` on the question object it returns)
 //   reference   path under https://en.cppreference.com/w/cpp/
@@ -13,17 +13,17 @@ const META = {
   'incr-semantics':            [['expressions'], 1, 'language/operator_incdec'],
   'sizeof-array':              [['types'], 1, 'language/sizeof'],
   'precedence':                [['expressions'], 1, 'language/operator_precedence'],
-  'uchar-wrap':                [['types'], 1, 'language/implicit_conversion'],
+  'uchar-wrap':                [['types'], 1, 'language/implicit_conversion', {ub:true}],
   'ctor-dtor-order':           [['classes', 'lifetime'], 2, 'language/initializer_list'],
   'virtual-dispatch':          [['classes'], 1, 'language/virtual'],
   'pass-by':                   [['types'], 1, 'language/reference'],
   'switch-fallthrough':        [['expressions'], 1, 'language/switch'],
   'string-ops':                [['stl'], 1, 'string/basic_string'],
   'static-local':              [['lifetime'], 2, 'language/storage_duration'],
-  'ptr-arith':                 [['types'], 2, 'language/operator_arithmetic'],
-  'struct-padding':            [['types'], 2, 'language/object'],
-  'trigraphs':                 [['types'], 3, 'language/operator_alternative'],
-  'override-compile':          [['classes'], 2, 'language/override'],
+  'ptr-arith':                 [['types'], 2, 'language/operator_arithmetic', {ub:true}],
+  'struct-padding':            [['types'], 2, 'language/object', {ub:true}],
+  'trigraphs':                 [['types'], 3, 'language/operator_alternative', {ub:true}],
+  'override-compile':          [['classes'], 2, 'language/override', {ub:true}],
   // ── C++11 ───────────────────────────────────────────────────────────────────
   'lambda-capture':            [['lambdas'], 2, 'language/lambda'],
   'range-for-ref':             [['stl'], 1, 'language/range-for'],
@@ -90,27 +90,36 @@ const META = {
   'string-equality-identity':  [['stl', 'types'], 2, 'string/basic_string/operator_cmp'],
   'string-concat-compile':     [['stl'], 1, 'string/basic_string'],
   'string-conversions':        [['stl'], 2, 'string/basic_string/stol'],
-  // ── content gaps (tgaps.js) ─────────────────────────────────────────────────
-  'exception-unwind-order':    [['concurrency', 'lifetime'], 2, 'language/throw'],
-  'exception-catch-matching':  [['concurrency'], 2, 'language/try_catch'],
-  'exception-ctor-throw':      [['concurrency', 'classes', 'lifetime'], 3, 'language/try_catch'],
+  // ── exceptions, conversions, linkage/ODR, template specialisation, temporaries ──
+  'exception-unwind-order':    [['exceptions', 'lifetime'], 2, 'language/throw'],
+  'exception-catch-matching':  [['exceptions'], 2, 'language/try_catch'],
+  'exception-ctor-throw':      [['exceptions', 'classes', 'lifetime'], 3, 'language/try_catch'],
   'vector-erase-patterns':     [['stl'], 2, 'algorithm/remove'],
-  'integer-conversion-traps':  [['types'], 2, 'language/implicit_conversion'],
+  'integer-conversion-traps':  [['types'], 2, 'language/implicit_conversion', {ub:true}],
   'short-circuit-eval':        [['expressions'], 1, 'language/operator_logical'],
-  'linkage-odr-compile':       [['types'], 3, 'language/definition'],
+  'linkage-odr-compile':       [['types'], 3, 'language/definition', {ub:true}],
   'specialization-vs-overload': [['templates'], 3, 'language/template_specialization'],
   'template-deduction-overloads': [['templates'], 3, 'language/function_template'],
   'temporary-lifetime':        [['lifetime'], 2, 'language/lifetime'],
+  // ── time-machine (adapters/time-machine.js) ────────────────────────────────
+  'tm-auto-storage-vs-deduction':  [['types'], 2, 'keyword/auto'],
+  'tm-auto-int-storage-class':     [['types'], 2, 'keyword/auto'],
+  'tm-closing-angle-brackets':     [['templates'], 1, 'language/template_argument_deduction'],
+  'tm-constexpr-loop':             [['constexpr'], 2, 'language/constexpr'],
+  'tm-guaranteed-copy-elision':    [['lifetime', 'classes'], 2, 'language/copy_elision'],
+  'tm-static-assert-no-msg':       [['constexpr'], 1, 'language/static_assert'],
+  'tm-removed-bool-increment':     [['types'], 1, 'language/operator_incdec'],
+  'tm-dynamic-exception-spec':     [['exceptions'], 2, 'language/except_spec'],
 };
 
-const DOMAINS = ['lifetime', 'move', 'classes', 'templates', 'constexpr', 'types', 'expressions', 'stl', 'lambdas', 'concurrency'];
+const DOMAINS = ['lifetime', 'move', 'classes', 'templates', 'constexpr', 'types', 'expressions', 'stl', 'lambdas', 'exceptions'];
 
 // Attach `domains`, `difficulty` ([lo,hi]) and `reference` to every template, validating as we go.
 function apply(templates) {
   for (const t of templates) {
     const m = META[t.id];
     if (!m) throw new Error(`template "${t.id}" has no entry in lib/templates/meta.js`);
-    const [domains, diff, ref] = m;
+    const [domains, diff, ref, flags = {}] = m;
     if (!domains.length || domains.some((d) => !DOMAINS.includes(d))) throw new Error(`template "${t.id}": bad domains ${domains}`);
     const range = Array.isArray(diff) ? diff : [diff, diff];
     if (range.some((d) => ![1, 2, 3].includes(d)) || range[0] > range[1]) throw new Error(`template "${t.id}": bad difficulty ${diff}`);
@@ -118,6 +127,7 @@ function apply(templates) {
     t.diffRange = range;
     t.difficulty = Math.round((range[0] + range[1]) / 2);
     t.reference = CPPREF + ref;
+    t.ub = !!flags.ub;
   }
   for (const id of Object.keys(META)) if (!templates.some((t) => t.id === id)) throw new Error(`meta.js has an entry for unknown template "${id}"`);
   return templates;

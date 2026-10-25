@@ -510,6 +510,7 @@ int main() {
         const picks = R.sample(usable, 3);
         const exp = picks.map((p) => p[1]);
         const bump = (s) => (/^\d+$/.test(s) ? String(Number(s) + 1) : s);
+        const flipDigit = (s) => (s === '0' ? '1' : '0');
         return {
           kind: 'output',
           code: `${inc('climits', 'iostream')}int main() {\n    std::cout << ${picks.map((p) => `(${p[0]})`).join(' << " " << ')} << "${NL}";\n}\n`,

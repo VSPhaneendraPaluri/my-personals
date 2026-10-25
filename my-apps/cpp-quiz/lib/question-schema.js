@@ -22,7 +22,7 @@
 
 const VALID_MODES   = ['learn', 'interview', 'language_lawyer', 'ub_hunter', 'time_machine'];
 const VALID_FORMATS = ['predict_output', 'compiles', 'find_bug', 'ub_classify', 'which_better', 'conceptual'];
-const VALID_DOMAINS = ['lifetime', 'move', 'classes', 'templates', 'constexpr', 'types', 'expressions', 'stl', 'lambdas', 'concurrency'];
+const VALID_DOMAINS = ['lifetime', 'move', 'classes', 'templates', 'constexpr', 'types', 'expressions', 'stl', 'lambdas', 'exceptions'];
 const VALID_STDS    = ['c++98', 'c++11', 'c++14', 'c++17'];
 
 function validate(q) {

@@ -12,6 +12,7 @@
 const { STANDARDS, rankOf } = require('../lib/standards');
 const TEMPLATES = require('../lib/templates');
 const Q = require('../lib/question');
+const { validate } = require('../lib/question-schema');
 
 const iters = Number(process.argv[2] || 40);
 const filter = process.argv[3];
@@ -30,6 +31,9 @@ for (const t of TEMPLATES) {
       let q;
       try { q = Q.build(t, S, { gcc: 13 }); } catch (e) { note(t, S, 'build threw: ' + e.message); continue; }
       builds++;
+      // Schema validator: catch any structural regressions against question-schema.js
+      const schemaErrs = validate({ id: t.id, modes: ['learn'], format: q.kind === 'compile' ? 'compiles' : 'predict_output', domains: q.domains, difficulty: q.difficulty, code: q.code, explanation: q.explain, reference: q.reference });
+      for (const e of schemaErrs.filter((e) => !e.startsWith('invalid mode') && !e.startsWith('invalid format'))) note(t, S, 'schema: ' + e);
       const want = q.kind === 'compile' ? 2 : 4;
       if (q.options.length !== want) note(t, S, `expected ${want} options, got ${q.options.length}`);
       const normd = q.options.map((o) => (q.keepWhitespace ? o.replace(/\s+$/, '') : Q.norm(o)));

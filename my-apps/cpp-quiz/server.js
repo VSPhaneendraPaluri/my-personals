@@ -65,6 +65,8 @@ const server = http.createServer(async (req, res) => {
         const filters = { goal, domain, diff };
         const q = await pool.next(stdKey, filters);
         q.t = Date.now(); served.set(q.id, q);
+        // Cap growth between cleanup cycles: evict oldest entry when over limit.
+        if (served.size > 2000) served.delete(served.keys().next().value);
         return send(res, 200, {
           id: q.id, std: q.std, kind: q.kind, topic: q.topic,
           code: q.code, options: q.options, flags: q.flags,

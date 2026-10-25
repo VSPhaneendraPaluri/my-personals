@@ -79,7 +79,7 @@ function build(tpl, S, ctx) {
   const base = {
     tplId: tpl.id, topic: tpl.topic, std: S.key, kind, code: q.code, explain: q.explain,
     errorRe: q.errorRe || null, keepWhitespace: !!q.keepWhitespace,
-    domains: tpl.domains || [], difficulty: difficultyOf(tpl, q), reference: q.reference || tpl.reference || null,
+    domains: tpl.domains || [], difficulty: difficultyOf(tpl, q), reference: q.reference || tpl.reference || null, ub: tpl.ub || false,
   };
   if (kind === 'compile') {
     const options = ['Compiles and runs', 'Compilation error'];

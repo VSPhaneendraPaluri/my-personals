@@ -17,7 +17,7 @@ const DOMAINS = [
   { key: 'expressions', label: 'Expressions & Lookup' },
   { key: 'stl',         label: 'STL' },
   { key: 'lambdas',     label: 'Lambdas' },
-  { key: 'concurrency', label: 'Concurrency & Exceptions' },
+  { key: 'exceptions',  label: 'Exceptions' },
 ];
 
 const DIFF_LABELS = { 1: 'Beginner', 2: 'Intermediate', 3: 'Advanced' };
