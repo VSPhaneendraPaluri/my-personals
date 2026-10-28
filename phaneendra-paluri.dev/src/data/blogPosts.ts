@@ -140,12 +140,16 @@ const postFiles = import.meta.glob<string>('../../../blogposts/*.md', {
 
 export const blogPosts = Object.entries(postFiles)
   .map(([filePath, content]) => parsePostFile(filePath, content))
-  .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
+  .sort((a, b) =>
+    b.publishedAt.localeCompare(a.publishedAt) || a.seriesLabel.localeCompare(b.seriesLabel),
+  );
 
 export const getAdjacentFlowPosts = (post: BlogPost) => {
   const flowPosts = blogPosts
     .filter(({ seriesLabel }) => /^FLOW · Part \d+\b/.test(seriesLabel))
-    .sort((a, b) => a.publishedAt.localeCompare(b.publishedAt));
+    .sort((a, b) =>
+      a.publishedAt.localeCompare(b.publishedAt) || a.seriesLabel.localeCompare(b.seriesLabel),
+    );
   const currentIndex = flowPosts.findIndex(({ slug }) => slug === post.slug);
 
   if (currentIndex === -1) return {};

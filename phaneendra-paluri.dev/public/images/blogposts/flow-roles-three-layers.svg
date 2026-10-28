@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="760" height="240" viewBox="0 0 760 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The architect owns legality in mycore.rules, the test writer owns intent in testN.flow, and common.flow sits between them as shared setup" style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif">
+<defs><linearGradient id="a1bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f172a"/><stop offset="1" stop-color="#1e1b4b"/></linearGradient>
+<marker id="a1ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#94a3b8"/></marker></defs>
+<rect width="760" height="240" rx="18" fill="url(#a1bg)"/>
+<text x="380" y="34" text-anchor="middle" fill="#94a3b8" font-size="12" letter-spacing="3">ONE TEAM · THREE LAYERS · CLEAR OWNERSHIP</text>
+<rect x="28" y="56" width="206" height="150" rx="14" fill="#1f2937" stroke="#f59e0b" stroke-width="2"/>
+<circle cx="62" cy="92" r="18" fill="#f59e0b"/><text x="62" y="98" text-anchor="middle" font-size="18" fill="#0f172a">⚖</text>
+<text x="90" y="88" fill="#fbbf24" font-size="13" font-weight="700" letter-spacing="1">ARCHITECT</text>
+<text x="90" y="106" fill="#cbd5e1" font-size="12">owns what is legal</text>
+<text x="46" y="148" fill="#f1f5f9" font-size="15" font-weight="600" font-family="ui-monospace,Menlo,Consolas,monospace">mycore.rules</text>
+<text x="46" y="170" fill="#94a3b8" font-size="12">pools · regions · alignment</text>
+<text x="46" y="188" fill="#94a3b8" font-size="12">reserved regs · locked rules</text>
+<rect x="277" y="56" width="206" height="150" rx="14" fill="#1f2937" stroke="#8b5cf6" stroke-width="2"/>
+<circle cx="311" cy="92" r="18" fill="#8b5cf6"/><text x="311" y="98" text-anchor="middle" font-size="18" fill="#fff">⛓</text>
+<text x="339" y="88" fill="#c4b5fd" font-size="13" font-weight="700" letter-spacing="1">SHARED</text>
+<text x="339" y="106" fill="#cbd5e1" font-size="12">architect or writer</text>
+<text x="295" y="148" fill="#f1f5f9" font-size="15" font-weight="600" font-family="ui-monospace,Menlo,Consolas,monospace">common.flow</text>
+<text x="295" y="170" fill="#94a3b8" font-size="12">pools · defaults · init state</text>
+<text x="295" y="188" fill="#94a3b8" font-size="12">hooks · reusable scenes</text>
+<rect x="526" y="56" width="206" height="150" rx="14" fill="#1f2937" stroke="#14b8a6" stroke-width="2"/>
+<circle cx="560" cy="92" r="18" fill="#14b8a6"/><text x="560" y="98" text-anchor="middle" font-size="18" fill="#0f172a">🎯</text>
+<text x="588" y="88" fill="#5eead4" font-size="13" font-weight="700" letter-spacing="1">TEST WRITER</text>
+<text x="588" y="106" fill="#cbd5e1" font-size="12">owns what to test</text>
+<text x="544" y="148" fill="#f1f5f9" font-size="15" font-weight="600" font-family="ui-monospace,Menlo,Consolas,monospace">test1…N.flow</text>
+<text x="544" y="170" fill="#94a3b8" font-size="12">directed instructions · draws</text>
+<text x="544" y="188" fill="#94a3b8" font-size="12">mix targets · assertions</text>
+<line x1="236" y1="131" x2="274" y2="131" stroke="#94a3b8" stroke-width="2" marker-end="url(#a1ar)"/>
+<line x1="485" y1="131" x2="523" y2="131" stroke="#94a3b8" stroke-width="2" marker-end="url(#a1ar)"/>
+<text x="380" y="228" text-anchor="middle" fill="#64748b" font-size="11">arrows show what each layer feeds into</text>
+</svg>

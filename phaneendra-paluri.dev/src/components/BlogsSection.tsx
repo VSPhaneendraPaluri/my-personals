@@ -129,9 +129,10 @@ export const BlogsSection: React.FC<BlogsSectionProps> = ({ accent }) => {
           if (!a.publishedAt && !b.publishedAt) return a.title.localeCompare(b.title);
           return a.publishedAt ? -1 : 1;
         }
-        return sortOrder === 'newest'
+        const dateOrder = sortOrder === 'newest'
           ? b.publishedAt.localeCompare(a.publishedAt)
           : a.publishedAt.localeCompare(b.publishedAt);
+        return dateOrder || (a.seriesLabel ?? '').localeCompare(b.seriesLabel ?? '');
       });
   }, [activeFilter, items, searchQuery, selectedArchive, selectedSeries, sortOrder]);
 

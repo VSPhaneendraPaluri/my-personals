@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="760" height="300" viewBox="0 0 760 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Five rules of thumb for organising FLOW files" style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif">
+<rect width="760" height="300" rx="18" fill="#0f172a"/>
+<g font-size="13">
+<circle cx="52" cy="48" r="16" fill="#14b8a6"/><text x="52" y="54" text-anchor="middle" fill="#0f172a" font-weight="800">1</text>
+<text x="80" y="44" fill="#f1f5f9" font-weight="700">One test case, one file</text><text x="80" y="62" fill="#94a3b8" font-size="12">Short, focused, easy to name and debug.</text>
+<circle cx="52" cy="104" r="16" fill="#8b5cf6"/><text x="52" y="110" text-anchor="middle" fill="#fff" font-weight="800">2</text>
+<text x="80" y="100" fill="#f1f5f9" font-weight="700">Shared things go in common.flow</text><text x="80" y="118" fill="#94a3b8" font-size="12">Two files repeat it? Move it. Three? Definitely move it.</text>
+<circle cx="52" cy="160" r="16" fill="#f59e0b"/><text x="52" y="166" text-anchor="middle" fill="#0f172a" font-weight="800">3</text>
+<text x="80" y="156" fill="#f1f5f9" font-weight="700">Do not repeat legality</text><text x="80" y="174" fill="#94a3b8" font-size="12">Need the same restriction twice? Ask the architect for a rule.</text>
+<circle cx="52" cy="216" r="16" fill="#ef4444"/><text x="52" y="222" text-anchor="middle" fill="#fff" font-weight="800">4</text>
+<text x="80" y="212" fill="#f1f5f9" font-weight="700">Strict mode in every production test</text><text x="80" y="230" fill="#94a3b8" font-size="12">Warnings become hard errors. Nothing slips through CI.</text>
+<circle cx="52" cy="272" r="16" fill="#38bdf8"/><text x="52" y="278" text-anchor="middle" fill="#0f172a" font-weight="800">5</text>
+<text x="80" y="268" fill="#f1f5f9" font-weight="700">Relax and override sparingly</text><text x="80" y="286" fill="#94a3b8" font-size="12">Boundary tests only. Document, get sign-off, never in common.flow.</text>
+</g>
+</svg>

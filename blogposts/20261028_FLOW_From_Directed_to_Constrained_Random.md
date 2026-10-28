@@ -1,14 +1,14 @@
 ---
 publishedAt: 2026-10-28
 topicId: isg
-seriesLabel: FLOW · Part 3 | Post 3B of 6
+seriesLabel: FLOW · Part 3 | Post 3B of N
 excerpt: How to grow a directed CPU verification test into constrained-random traffic, shape instruction mixes, reuse scenes, and scale testing across reproducible seeds.
 ---
-FLOW Language Series · Post 3B of 6
+FLOW Language Series · Post 3B of N
 
 # From Directed to Constrained Random
 
-CPU Verification · Constrained Random · ISG \~7 min read
+CPU Verification·Constrained Random·ISG·~7 min read
 
 A directed test pins the exact scenario you care about. Constrained random surrounds it with varied traffic, shapes it toward a stress point, and scales it across many seeds. This post walks the full arc — from a single pinned load to a soak run — using concept-level pseudo-code. Exact grammar comes in a later post in this series.
 
@@ -18,85 +18,113 @@ A directed test pins the exact scenario you care about. Constrained random surro
 
 Every good test starts as a directed test and grows outward. The progression is the same regardless of which scenario you are testing:
 
-1
+![Five steps from a directed test to a soak run: write the exact scenario, add constrained-random context, shape the mix, promote patterns to scenes, soak across seeds.](/images/blogposts/flow-directed-to-random-arc.svg)
 
-#### Write the exact scenario
-
-Pin down the instructions you care about. Add an assertion so FLOW verifies correctness, not just that the stream was generated.
-
-2
-
-#### Add constrained-random context
-
-Surround the directed core with constrained-random draws from an instruction pool. Varied traffic before and after stresses the pipeline without changing the outcome you are asserting.
-
-3
-
-#### Shape the mix and narrow the draws
-
-Declare a distribution target — for example, stores must be at least 25 % of all drawn instructions. Confine random address draws to a hot memory region to provoke conflicts and hazards.
-
-4
-
-#### Promote repeating patterns to scenes
-
-As soon as you write the same block in two test files, extract it into a scene in *common.flow*. Test files then invoke the scene by name with arguments.
-
-5
-
-#### Soak it
-
-Declare a repeat count on the test block. FLOW runs it many times, each with its own reproducible seed, keeping the directed core and assertions identical across all copies.
+1. **Write the exact scenario** — Pin down the instructions you care about. Add an assertion so FLOW verifies correctness, not just that the stream was generated.
+2. **Add constrained-random context** — Surround the directed core with constrained-random draws from an instruction pool. Varied traffic before and after stresses the pipeline without changing the outcome you are asserting.
+3. **Shape the mix and narrow the draws** — Declare a distribution target — stores must be at least 25% of all drawn instructions, for example. Confine random address draws to a hot memory region to provoke conflicts and hazards.
+4. **Promote repeating patterns to scenes** — As soon as you write the same block in two test files, extract it into a scene in *common.flow*. Test files then invoke the scene by name with arguments.
+5. **Soak it** — Declare a repeat count on the test block. FLOW runs it many times, each with its own reproducible seed, keeping the directed core and assertions identical across all copies.
 
 ## The Arc in Pseudo-Code
 
 The following sketches show the same test evolving through all five steps. File names and structure are real; everything inside the test blocks is concept-level notation.
 
-test2.flow — Step 1: directed core only
+**test2.flow — Step 1: directed core only**
 
-import rules "rules/mycore.rules" import shared "common.flow" target isa mycore test step1 { move r1 ← 0x2000 load r2 ← memory\[0x2000\] assert r2 == 0 # counting pattern in common.flow puts 0 at 0x2000 }
+```text
+import rules "rules/mycore.rules"
+import shared "common.flow"
+target isa mycore
 
-test2.flow — Step 2: add constrained-random context
+test step1 {
+    move r1 ← 0x2000
+    load r2 ← memory[0x2000]
+    assert r2 == 0          # counting pattern in common.flow puts 0 at 0x2000
+}
+```
 
-test step2 { draw 50 instructions from instruction_mix pool # random traffic before move r1 ← 0x2000 load r2 ← memory\[0x2000\] assert r2 == 0 draw 100 instructions from instruction_mix pool # random traffic after }
+**test2.flow — Step 2: add constrained-random context**
 
-test2.flow — Step 3: shape mix, narrow address draws
+```text
+test step2 {
+    draw 50 instructions from instruction_mix pool      # random traffic before
+    move r1 ← 0x2000
+    load r2 ← memory[0x2000]
+    assert r2 == 0
+    draw 100 instructions from instruction_mix pool     # random traffic after
+}
+```
 
-test step3 { target mix { stores >= 25%; branches \<= 5% } move r1 ← 0x2000 load r2 ← memory\[0x2000\] assert r2 == 0 draw 200 instructions from instruction_mix pool, address operands confined to hot_memory pool report mix # print achieved distribution }
+**test2.flow — Step 3: shape mix, narrow address draws**
 
-test2.flow — Step 4: invoke a shared scene
+```text
+test step3 {
+    target mix { stores >= 25%; branches <= 5% }
+    move r1 ← 0x2000
+    load r2 ← memory[0x2000]
+    assert r2 == 0
+    draw 200 instructions from instruction_mix pool,
+         address operands confined to hot_memory pool
+    report mix                                          # print achieved distribution
+}
+```
 
-test step4 { run scene memory_copy( 8 words, from 0x2000, to 0x2100 ) # defined in common.flow target mix { stores >= 20% } draw 150 instructions from instruction_mix pool, address operands confined to hot_memory pool report mix }
+**test2.flow — Step 4: invoke a shared scene**
 
-test2.flow — Step 5: soak run with 20 seeds
+```text
+test step4 {
+    run scene memory_copy( 8 words, from 0x2000, to 0x2100 )
+                                                        # defined in common.flow, no code duplicated here
+    target mix { stores >= 20% }
+    draw 150 instructions from instruction_mix pool,
+         address operands confined to hot_memory pool
+    report mix
+}
+```
 
-test soak ( starting seed = 100, repeat 20 times ) { run scene memory_copy( 8 words, from 0x2000, to 0x2100 ) target mix { stores >= 20% } draw 500 instructions from instruction_mix pool, address operands confined to hot_memory pool report mix } # FLOW generates: soak_copy_0 … soak_copy_19, each with its own reproducible seed
+**test2.flow — Step 5: soak run across 20 seeds**
+
+```text
+test soak ( starting seed = 100, repeat 20 times ) {
+    run scene memory_copy( 8 words, from 0x2000, to 0x2100 )
+    target mix { stores >= 20% }
+    draw 500 instructions from instruction_mix pool,
+         address operands confined to hot_memory pool
+    report mix
+}
+# FLOW generates: soak_0 … soak_19, each with its own reproducible seed
+```
 
 ## The Key Concepts
 
 ### Constrained-Random Draws
 
-A draw picks one instruction from a pool, one at a time, in proportion to each item's weight. An instruction is eligible for a draw only if two conditions both hold: any guard on that item is currently satisfied, *and* using it would not break any active architectural rule. Rules always win — if nothing in the pool is eligible, the draw is skipped and FLOW warns. If a draw is retried many times without finding a legal instruction, FLOW drops it and warns again. The test writer sees both in the run log.
+A draw picks one instruction from a pool, one at a time, in proportion to each item's weight. An instruction is eligible only if two conditions hold: any guard on that item is currently satisfied, *and* using it would not break any active architectural rule. Rules always win — if nothing in the pool is eligible, the draw is skipped and FLOW warns.
 
-The draw count can be fixed, a range, or expressed as "keep drawing until some condition holds, up to a maximum." A draw can also target a single instruction type rather than a pool, which is useful for forcing a specific instruction into a random stream at a chosen point.
+The draw count can be fixed, a range, or expressed as "keep drawing until some condition holds, up to a maximum." A draw can also target a single instruction type rather than a pool.
 
-**Rule relaxations affect eligibility.** What counts as "legal" for a draw is the full set of active rules at that point in the stream. A test writer can narrow or widen that set for a specific test by relaxing or overriding a named architectural rule — for example, temporarily permitting unaligned accesses, or widening a branch frequency limit. These adjustments are scope-local and do not affect any other test. Rules the architect has marked as locked are immune and cannot be changed by a test file under any circumstance.
+### Rule Relaxations and Draw Eligibility
+
+What counts as "legal" for a draw is the full set of active rules at that point in the stream. A test writer can narrow or widen that set for a specific test by relaxing or overriding a named architectural rule — for example, temporarily permitting unaligned accesses, or widening a branch frequency limit.
+
+These adjustments are scope-local and do not affect any other test. Rules the architect has marked as **locked** are immune and cannot be changed by any test file.
 
 ### Mix Targets
 
-A mix target states the distribution you want across the drawn instructions in a test or a narrowed block. It is a *target*, not a hard constraint — FLOW steers toward it by dynamically adjusting the effective weights of eligible items. If the target cannot be met (because rules forbid the instruction, or two targets conflict), FLOW warns and a report statement prints the achieved figure alongside the target.
+A mix target states the distribution you want across the drawn instructions. It is a *target*, not a hard constraint — FLOW steers toward it by dynamically adjusting the effective weights of eligible items. If the target cannot be met because rules forbid the instruction, or two targets conflict, FLOW warns and a report statement prints the achieved figure alongside the target.
 
 Targets can be expressed as a percentage share of all drawn instructions, or as an absolute count. Both lower-bounds and upper-bounds are supported.
 
 ### Narrowing Draws to a Region
 
-By default, random address operands are drawn from the pool named in the file's default bindings. For a specific block, the test writer can confine those draws to a tighter pool — for example, a hot 256-byte region — to provoke cache-line conflicts, store-buffer pressure, or alignment edge cases. The narrowing applies only to that block and reverts automatically when the block ends. Multiple operand kinds can be narrowed in the same block.
+By default, random address operands are drawn from the pool named in the file's default bindings. For a specific block, the test writer can confine those draws to a tighter pool — for example, a hot 256-byte region — to provoke cache-line conflicts, store-buffer pressure, or alignment edge cases.
+
+The narrowing applies only to that block and reverts automatically when the block ends. Multiple operand kinds can be narrowed in the same block.
 
 ### Scenes — Reuse Without Copy-Paste
 
-A scene is a named, parameterised stream fragment defined in *common.flow*. Parameters can be integers, addresses, registers or immediates. A test file invokes the scene by name, passing arguments. The scene's labels are local to each invocation — two tests can both run the same scene without label conflicts. Scenes cannot call themselves recursively.
-
-**When to extract a scene:** as soon as you write the same instruction block in two different test files, it belongs in *common.flow* as a scene. Tests invoke it with arguments; the scene body is never duplicated.
+A scene is a named, parameterised stream fragment defined in *common.flow*. Parameters can be integers, addresses, registers or immediates. A test file invokes the scene by name, passing arguments. The scene's labels are local to each invocation — two tests can run the same scene without label conflicts. Scenes cannot call themselves recursively.
 
 ### Hooks — Wrapping Every Test
 
@@ -104,11 +132,13 @@ Hooks defined in *common.flow* wrap every test in every file that imports it. Th
 
 ### Soak Runs
 
-A soak declaration on a test block tells FLOW to run it a given number of times, each with its own derived seed, naming the copies sequentially. The directed instructions and assertions are identical across all copies; only the constrained-random draws vary. This is the fastest path from a passing directed test to broad random coverage with a single-line change.
+A soak declaration on a test block tells FLOW to run it a given number of times, each with its own derived seed, naming the copies sequentially. The directed instructions and assertions are identical across all copies; only the constrained-random draws vary. This is the fastest path from a passing directed test to broad random coverage — a single-line change.
+
+![A soak declaration on one test block fans out into copies soak_0 to soak_19, each with the same directed core and assertion but its own reproducible seed.](/images/blogposts/flow-soak-seeds.svg)
 
 ## Diagnostics
 
-FLOW emits structured messages when generation encounters a problem. The table below lists the codes a test writer meets most often.
+FLOW emits structured messages when generation encounters a problem. The codes below are what a test writer meets most often.
 
 | Code | Meaning and what to do |
 | --- | --- |
@@ -124,7 +154,7 @@ FLOW emits structured messages when generation encounters a problem. The table b
 
 ## What's Next
 
-Post 4 adds structure to test bodies: ways to repeat a block a given number of times, to choose non-deterministically between alternatives, to interleave two streams, and to take data-dependent branches. These constructs let a single test file cover timing sequences, data-dependent paths, and multi-source interleavings — the scenarios that truly stress a CPU pipeline. As with this post, the grammar details will come when the formal specification is ready.
+Post 4 adds structure to test bodies: ways to repeat a block a given number of times, to choose non-deterministically between alternatives, to interleave two streams, and to take data-dependent branches. These constructs let a single test file cover timing sequences, data-dependent paths, and multi-source interleavings — the scenarios that truly stress a CPU pipeline. As with this post, grammar details will come when the formal specification is ready.
 
 ← Previous [Post 3A: Roles, Responsibilities and the .flow File](#)
 

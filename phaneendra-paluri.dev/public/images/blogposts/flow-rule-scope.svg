@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="760" height="300" viewBox="0 0 760 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Locked rules can never be changed. Relaxable rules can be loosened inside one test block, then revert when the block ends." style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif">
+<rect width="760" height="300" rx="18" fill="#0f172a"/>
+<text x="30" y="38" fill="#94a3b8" font-size="12" letter-spacing="3">RULE CHANGES ARE SCOPE-LOCAL</text>
+<rect x="30" y="56" width="330" height="214" rx="14" fill="#1f2937" stroke="#f59e0b" stroke-width="2"/>
+<text x="50" y="84" fill="#fbbf24" font-size="13" font-weight="700" font-family="ui-monospace,Menlo,Consolas,monospace">mycore.rules</text>
+<text x="50" y="104" fill="#94a3b8" font-size="11">never edited by a test</text>
+<rect x="50" y="120" width="290" height="34" rx="8" fill="#450a0a" stroke="#ef4444"/>
+<text x="64" y="142" fill="#fecaca" font-size="12">🔒 locked · reserved registers</text>
+<rect x="50" y="162" width="290" height="34" rx="8" fill="#450a0a" stroke="#ef4444"/>
+<text x="64" y="184" fill="#fecaca" font-size="12">🔒 locked · ROM write-protection</text>
+<rect x="50" y="204" width="290" height="26" rx="8" fill="#14532d" stroke="#22c55e"/>
+<text x="64" y="222" fill="#bbf7d0" font-size="12">alignment requirement</text>
+<rect x="50" y="236" width="290" height="26" rx="8" fill="#14532d" stroke="#22c55e"/>
+<text x="64" y="254" fill="#bbf7d0" font-size="12">branch frequency limit</text>
+<rect x="420" y="56" width="310" height="214" rx="14" fill="#1f2937" stroke="#14b8a6" stroke-width="2"/>
+<text x="440" y="84" fill="#5eead4" font-size="13" font-weight="700" font-family="ui-monospace,Menlo,Consolas,monospace">test block</text>
+<text x="440" y="104" fill="#94a3b8" font-size="11">changes live only in here</text>
+<rect x="440" y="120" width="270" height="34" rx="8" fill="#134e4a" stroke="#14b8a6" stroke-dasharray="5 4"/>
+<text x="454" y="142" fill="#99f6e4" font-size="12">relax: permit unaligned access</text>
+<rect x="440" y="162" width="270" height="34" rx="8" fill="#134e4a" stroke="#14b8a6" stroke-dasharray="5 4"/>
+<text x="454" y="184" fill="#99f6e4" font-size="12">override: wider branch limit</text>
+<text x="440" y="226" fill="#cbd5e1" font-size="12">⟲ reverts automatically</text>
+<text x="440" y="246" fill="#cbd5e1" font-size="12">at the end of the block</text>
+<path d="M342 237 C 380 237, 395 175, 436 175" fill="none" stroke="#22c55e" stroke-width="2" stroke-dasharray="4 4"/>
+<text x="380" y="292" text-anchor="middle" fill="#64748b" font-size="11">green rules may be loosened here · red rules can never be touched</text>
+</svg>

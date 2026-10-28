@@ -14,7 +14,9 @@ export const LatestFeeds: React.FC<LatestFeedsProps> = ({ accent }) => {
   const [isCarouselHovered, setIsCarouselHovered] = useState(false);
   const [isCarouselFocused, setIsCarouselFocused] = useState(false);
   const accentVals = getAccentValues(accent);
-  const latestPosts = [...blogPosts].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
+  const latestPosts = [...blogPosts].sort((a, b) =>
+    b.publishedAt.localeCompare(a.publishedAt) || a.seriesLabel.localeCompare(b.seriesLabel),
+  );
   const activePost = latestPosts[activePostIndex];
 
   useEffect(() => {

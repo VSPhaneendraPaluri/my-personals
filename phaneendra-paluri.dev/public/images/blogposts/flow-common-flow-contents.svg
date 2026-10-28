@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="760" height="210" viewBox="0 0 760 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The five things common.flow holds: pools, default bindings, initial state, hooks, scenes" style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif">
+<rect width="760" height="210" rx="18" fill="#0f172a"/>
+<text x="30" y="36" fill="#94a3b8" font-size="12" letter-spacing="3">INSIDE common.flow</text>
+<g font-size="12">
+<rect x="20" y="52" width="137" height="138" rx="12" fill="#1f2937" stroke="#38bdf8"/>
+<text x="40" y="84" font-size="22">🎲</text><text x="40" y="112" fill="#7dd3fc" font-weight="700" font-size="14">Pools</text>
+<text x="40" y="134" fill="#cbd5e1">Named, weighted</text><text x="40" y="150" fill="#cbd5e1">sets of registers,</text><text x="40" y="166" fill="#cbd5e1">addresses, mixes</text>
+<rect x="167" y="52" width="137" height="138" rx="12" fill="#1f2937" stroke="#a78bfa"/>
+<text x="187" y="84" font-size="22">🔗</text><text x="187" y="112" fill="#c4b5fd" font-weight="700" font-size="14">Defaults</text>
+<text x="187" y="134" fill="#cbd5e1">Which pool fills</text><text x="187" y="150" fill="#cbd5e1">each operand kind</text><text x="187" y="166" fill="#cbd5e1">automatically</text>
+<rect x="314" y="52" width="137" height="138" rx="12" fill="#1f2937" stroke="#34d399"/>
+<text x="334" y="84" font-size="22">🧠</text><text x="334" y="112" fill="#6ee7b7" font-weight="700" font-size="14">Initial state</text>
+<text x="334" y="134" fill="#cbd5e1">Known memory &amp;</text><text x="334" y="150" fill="#cbd5e1">register values,</text><text x="334" y="166" fill="#cbd5e1">tracked by FLOW</text>
+<rect x="461" y="52" width="137" height="138" rx="12" fill="#1f2937" stroke="#fbbf24"/>
+<text x="481" y="84" font-size="22">🪝</text><text x="481" y="112" fill="#fcd34d" font-weight="700" font-size="14">Hooks</text>
+<text x="481" y="134" fill="#cbd5e1">Prologue before,</text><text x="481" y="150" fill="#cbd5e1">epilogue after</text><text x="481" y="166" fill="#cbd5e1">every test</text>
+<rect x="608" y="52" width="132" height="138" rx="12" fill="#1f2937" stroke="#fb7185"/>
+<text x="628" y="84" font-size="22">🧩</text><text x="628" y="112" fill="#fda4af" font-weight="700" font-size="14">Scenes</text>
+<text x="628" y="134" fill="#cbd5e1">Reusable stream</text><text x="628" y="150" fill="#cbd5e1">fragments with</text><text x="628" y="166" fill="#cbd5e1">parameters</text>
+</g>
+</svg>

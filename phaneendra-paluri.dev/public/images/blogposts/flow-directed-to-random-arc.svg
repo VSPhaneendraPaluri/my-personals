@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="760" height="250" viewBox="0 0 760 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Five steps from a directed test to a soak run: write the exact scenario, add constrained-random context, shape the mix, promote patterns to scenes, soak across seeds" style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif">
+<defs><marker id="b1ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#94a3b8"/></marker></defs>
+<rect width="760" height="250" rx="18" fill="#0f172a"/>
+<text x="30" y="36" fill="#94a3b8" font-size="12" letter-spacing="3">FROM DIRECTED TO SOAK · FIVE STEPS</text>
+<g font-size="12">
+<rect x="20" y="58" width="128" height="160" rx="12" fill="#1f2937" stroke="#14b8a6" stroke-width="2"/>
+<circle cx="44" cy="84" r="14" fill="#14b8a6"/><text x="44" y="89" text-anchor="middle" fill="#0f172a" font-weight="800" font-size="14">1</text>
+<text x="34" y="124" fill="#5eead4" font-weight="700" font-size="14">Directed</text>
+<text x="34" y="146" fill="#cbd5e1">Pin the exact</text><text x="34" y="162" fill="#cbd5e1">scenario and</text><text x="34" y="178" fill="#cbd5e1">add an assert</text>
+<rect x="166" y="58" width="128" height="160" rx="12" fill="#1f2937" stroke="#8b5cf6" stroke-width="2"/>
+<circle cx="190" cy="84" r="14" fill="#8b5cf6"/><text x="190" y="89" text-anchor="middle" fill="#fff" font-weight="800" font-size="14">2</text>
+<text x="180" y="124" fill="#c4b5fd" font-weight="700" font-size="14">Random traffic</text>
+<text x="180" y="146" fill="#cbd5e1">Draw from a pool</text><text x="180" y="162" fill="#cbd5e1">before and after</text><text x="180" y="178" fill="#cbd5e1">the directed core</text>
+<rect x="312" y="58" width="128" height="160" rx="12" fill="#1f2937" stroke="#f59e0b" stroke-width="2"/>
+<circle cx="336" cy="84" r="14" fill="#f59e0b"/><text x="336" y="89" text-anchor="middle" fill="#0f172a" font-weight="800" font-size="14">3</text>
+<text x="326" y="124" fill="#fbbf24" font-weight="700" font-size="14">Shape the mix</text>
+<text x="326" y="146" fill="#cbd5e1">Mix targets and</text><text x="326" y="162" fill="#cbd5e1">a hot memory</text><text x="326" y="178" fill="#cbd5e1">region</text>
+<rect x="458" y="58" width="128" height="160" rx="12" fill="#1f2937" stroke="#38bdf8" stroke-width="2"/>
+<circle cx="482" cy="84" r="14" fill="#38bdf8"/><text x="482" y="89" text-anchor="middle" fill="#0f172a" font-weight="800" font-size="14">4</text>
+<text x="472" y="124" fill="#7dd3fc" font-weight="700" font-size="14">Reuse scenes</text>
+<text x="472" y="146" fill="#cbd5e1">Repeated blocks</text><text x="472" y="162" fill="#cbd5e1">move to</text><text x="472" y="178" fill="#cbd5e1">common.flow</text>
+<rect x="604" y="58" width="136" height="160" rx="12" fill="#1f2937" stroke="#fb7185" stroke-width="2"/>
+<circle cx="628" cy="84" r="14" fill="#fb7185"/><text x="628" y="89" text-anchor="middle" fill="#0f172a" font-weight="800" font-size="14">5</text>
+<text x="618" y="124" fill="#fda4af" font-weight="700" font-size="14">Soak</text>
+<text x="618" y="146" fill="#cbd5e1">Repeat across</text><text x="618" y="162" fill="#cbd5e1">seeds, same core</text><text x="618" y="178" fill="#cbd5e1">and assertions</text>
+</g>
+<g stroke="#94a3b8" stroke-width="2" marker-end="url(#b1ar)"><line x1="150" y1="138" x2="163" y2="138"/><line x1="296" y1="138" x2="309" y2="138"/><line x1="442" y1="138" x2="455" y2="138"/><line x1="588" y1="138" x2="601" y2="138"/></g>
+<text x="380" y="238" text-anchor="middle" fill="#64748b" font-size="11">each step keeps the directed core and its assertion unchanged</text>
+</svg>

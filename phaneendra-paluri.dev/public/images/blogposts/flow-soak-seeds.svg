@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="760" height="300" viewBox="0 0 760 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A soak declaration on one test block fans out into copies soak_0 to soak_19, each with the same directed core and assertion but its own reproducible seed and random draws" style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif">
+<defs><marker id="b2ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#94a3b8"/></marker></defs>
+<rect width="760" height="300" rx="18" fill="#0f172a"/>
+<text x="30" y="36" fill="#94a3b8" font-size="12" letter-spacing="3">ONE SOAK DECLARATION · MANY REPRODUCIBLE SEEDS</text>
+<rect x="30" y="66" width="250" height="190" rx="14" fill="#1f2937" stroke="#14b8a6" stroke-width="2"/>
+<text x="50" y="94" fill="#5eead4" font-size="13" font-weight="700" font-family="ui-monospace,Menlo,Consolas,monospace">test soak</text>
+<text x="50" y="114" fill="#94a3b8" font-size="12">starting seed = 100 · repeat 20</text>
+<rect x="50" y="130" width="210" height="34" rx="8" fill="#134e4a" stroke="#14b8a6"/>
+<text x="64" y="152" fill="#99f6e4" font-size="12">directed core + assertion</text>
+<rect x="50" y="174" width="210" height="34" rx="8" fill="#3b2a73" stroke="#8b5cf6"/>
+<text x="64" y="196" fill="#ddd6fe" font-size="12">constrained-random draws</text>
+<text x="50" y="236" fill="#94a3b8" font-size="12">a single-line change</text>
+<g stroke="#94a3b8" stroke-width="2" marker-end="url(#b2ar)"><line x1="284" y1="110" x2="368" y2="88"/><line x1="284" y1="161" x2="368" y2="161"/><line x1="284" y1="212" x2="368" y2="234"/></g>
+<g font-size="12" font-family="ui-monospace,Menlo,Consolas,monospace">
+<rect x="372" y="66" width="358" height="44" rx="10" fill="#1f2937" stroke="#475569"/>
+<text x="388" y="86" fill="#f1f5f9" font-weight="700">soak_0</text><text x="388" y="102" fill="#94a3b8" font-size="11">seed 100 · same core · draws A</text>
+<rect x="372" y="139" width="358" height="44" rx="10" fill="#1f2937" stroke="#475569"/>
+<text x="388" y="159" fill="#f1f5f9" font-weight="700">soak_1</text><text x="388" y="175" fill="#94a3b8" font-size="11">seed 101 · same core · draws B</text>
+<text x="551" y="208" text-anchor="middle" fill="#64748b" font-size="16">⋮</text>
+<rect x="372" y="212" width="358" height="44" rx="10" fill="#1f2937" stroke="#475569"/>
+<text x="388" y="232" fill="#f1f5f9" font-weight="700">soak_19</text><text x="388" y="248" fill="#94a3b8" font-size="11">seed 119 · same core · draws T</text>
+</g>
+<text x="380" y="284" text-anchor="middle" fill="#64748b" font-size="11">only the random draws vary · every failing copy can be replayed from its seed</text>
+</svg>
