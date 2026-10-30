@@ -353,10 +353,13 @@ const todayStr = () => { const d = new Date(); return d.getFullYear() + '-' + St
 const esc = (s) => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const clone = (o) => JSON.parse(JSON.stringify(o));
 const ic = (n) => `<svg class="i" aria-hidden="true"><use href="#i-${n}"/></svg>`;
-const stats = (tp) => ({
-  all: tp.length + tp.reduce((n, t) => n + t.subs.length, 0),
-  done: tp.filter(t => t.done).length + tp.reduce((n, t) => n + t.subs.filter(s => s.done).length, 0)
-});
+// Count real tasks only: a topic that has sub-topics is a heading (its sub-topics are the tasks);
+// a topic with no sub-topics is itself one task.
+const stats = (tp) => tp.reduce((c, t) => {
+  if (t.subs.length) { c.all += t.subs.length; c.done += t.subs.filter(s => s.done).length; }
+  else { c.all += 1; c.done += t.done ? 1 : 0; }
+  return c;
+}, { all: 0, done: 0 });
 const parseDay = (iso) => new Date(iso + 'T00:00:00');
 
 function toast(msg) {
@@ -582,7 +585,7 @@ function pickDate(d) {
   $('hview').scrollTop = 0;
   $('hview').innerHTML =
     `<div class="hd">${esc(fmt(d, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }))}</div>` +
-    `<div class="stat">${done} of ${all} items completed · ${pct}%</div><div class="bar"><i style="width:${pct}%"></i></div>` +
+    `<div class="stat">${done} of ${all} tasks completed · ${pct}%</div><div class="bar"><i style="width:${pct}%"></i></div>` +
     (topics.map(t => `<div class="h-topic ${t.done ? 'done' : ''}"><div class="t">${dot}<span>${esc(t.text)}</span></div>` +
       t.subs.map(s => `<div class="h-sub ${s.done ? 'done' : ''}">${dot}<span>${esc(s.text)}</span></div>`).join('') + '</div>').join('')
       || '<div class="stat" style="margin-top:18px">An empty day.</div>');
