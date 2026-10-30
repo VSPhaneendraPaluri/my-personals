@@ -1,0 +1,58 @@
+# ---------- Dependencies ----------
+node_modules/
+**/node_modules/
+package-lock.json
+**/package-lock.json
+
+# ---------- Build output ----------
+# electron-builder output (Karyadhara-portable.exe, AppImage, dmg, unpacked dirs)
+karyadhara-desktop/dist/
+dist/
+out/
+
+# ---------- Secrets & environment ----------
+# Never commit real credentials (DATABASE_URL, SESSION_SECRET). Keep the template.
+.env
+.env.*
+!.env.example
+
+# ---------- Desktop app runtime data (personal, created when running from source) ----------
+# Written next to the app when started via run.bat / npm start (matched in any folder)
+karyadhara-config.json
+karyadhara-data.json
+karyadhara-history.json
+window-state.json
+KaryadharaData/
+Backups/
+# Legacy DailyDeck names, in case an old install is run from this folder
+dailydeck-*.json
+DailyDeckData/
+# Exported history backups
+Karyadhara-History-*.json
+
+# ---------- Logs ----------
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ---------- Package manager extras ----------
+.npm/
+.yarn/
+.pnpm-store/
+
+# ---------- Test / scratch ----------
+coverage/
+*.tmp
+*.bak
+
+# ---------- OS files ----------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---------- Editors / IDEs ----------
+.vscode/
+.idea/
+*.swp
+*.swo

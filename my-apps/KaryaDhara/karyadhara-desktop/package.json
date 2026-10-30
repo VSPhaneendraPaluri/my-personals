@@ -1,0 +1,32 @@
+{
+  "name": "karyadhara",
+  "version": "1.0.0",
+  "description": "Karyadhara — a sticky daily to-do widget with topics, sub-topics and date-wise history",
+  "main": "main.js",
+  "author": "Karyadhara",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "prep:build": "npm install --include=dev",
+    "build:win": "electron-builder --win portable",
+    "build:mac": "electron-builder --mac dmg",
+    "build:linux": "electron-builder --linux AppImage",
+    "build:all": "electron-builder --win portable --linux AppImage"
+  },
+  "dependencies": {
+    "electron": "^33.0.0"
+  },
+  "devDependencies": {
+    "electron-builder": "^25.0.0"
+  },
+  "build": {
+    "appId": "com.karyadhara.app",
+    "productName": "Karyadhara",
+    "files": ["main.js", "preload.js", "index.html", "build/icon.png"],
+    "directories": { "output": "dist" },
+    "win": { "target": "portable" },
+    "portable": { "artifactName": "Karyadhara-portable.exe" },
+    "linux": { "target": "AppImage" },
+    "mac": { "target": "dmg" }
+  }
+}

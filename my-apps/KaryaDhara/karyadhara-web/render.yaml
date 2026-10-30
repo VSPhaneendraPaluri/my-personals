@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: karyadhara
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SESSION_SECRET
+        generateValue: true          # Render generates a strong random secret for you; never commit a real one
+      - key: DATABASE_URL
+        fromDatabase:
+          name: dailydeck-db
+          property: connectionString
+
+databases:
+  # Name intentionally unchanged: renaming a Render database creates a NEW empty one.
+  - name: dailydeck-db
+    plan: free
+    databaseName: dailydeck
+    user: dailydeck

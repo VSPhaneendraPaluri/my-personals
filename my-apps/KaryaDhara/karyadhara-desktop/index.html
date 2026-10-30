@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Karyadhara</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src 'self' data:">
+<style>
+  :root { --bg:#0d0e1c; --bg2:#15162b; --card:rgba(255,255,255,.06); --card-h:rgba(255,255,255,.095); --line:rgba(255,255,255,.11);
+          --text:#f3f2fa; --muted:#a3a2bd; --done:#707090; --danger:#ff6b86; --focus:#ff8fb1;
+          --grad:linear-gradient(135deg,#f0661f,#e0357c 55%,#6f4cff); }
+  * { box-sizing:border-box; }
+  html, body { margin:0; height:100%; color:var(--text); font:14px/1.45 "Segoe UI", system-ui, -apple-system, Roboto, sans-serif; -webkit-font-smoothing:antialiased; }
+  body { display:flex; flex-direction:column; border:1px solid var(--line); overflow:hidden; position:relative;
+         background:radial-gradient(34rem 24rem at -10% -12%, rgba(240,102,31,.20), transparent 62%), radial-gradient(30rem 24rem at 110% 110%, rgba(111,76,255,.24), transparent 62%), var(--bg); }
+  button { font:inherit; color:inherit; background:none; border:0; cursor:pointer; }
+  :focus-visible { outline:2px solid var(--focus); outline-offset:1px; border-radius:6px; }
+  .i { width:17px; height:17px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex-shrink:0; }
+  .sprite { position:absolute; width:0; height:0; overflow:hidden; }
+
+  /* title bar: row 1 = brand + window controls, row 2 = date, progress, tools */
+  #titlebar { -webkit-app-region:drag; padding:9px 10px 8px; background:rgba(21,22,43,.82); border-bottom:1px solid var(--line); }
+  .r1, .r2 { display:flex; align-items:center; gap:4px; }
+  .brand { display:flex; align-items:center; gap:8px; flex:1; min-width:0; font-weight:800; font-size:15px; letter-spacing:-.02em; }
+  .brand svg { width:24px; height:24px; flex-shrink:0; }
+  .tb { -webkit-app-region:no-drag; display:grid; place-items:center; width:28px; height:28px; border-radius:8px; color:var(--muted); transition:background .15s,color .15s; }
+  .tb:hover { background:var(--card-h); color:var(--text); }
+  .tb.on { color:var(--focus); background:var(--card); }
+  #btnClose:hover { background:#e0357c; color:#fff; }
+  .r2 { margin-top:7px; }
+  .date { color:var(--muted); font-size:12px; font-weight:600; white-space:nowrap; }
+  .prog { flex:1; min-width:30px; height:5px; margin:0 8px; border-radius:9px; background:var(--line); overflow:hidden; }
+  .prog > i { display:block; height:100%; width:0; background:var(--grad); border-radius:9px; transition:width .5s cubic-bezier(.3,.8,.3,1); }
+  .pct { color:var(--muted); font-size:11.5px; font-weight:700; min-width:30px; text-align:right; margin-right:4px; }
+
+  #addbar { display:flex; gap:7px; padding:10px; }
+  input[type=text] { flex:1; min-width:0; height:34px; background:var(--card); border:1px solid var(--line); color:var(--text); padding:0 11px; border-radius:10px; outline:none; font:inherit; transition:border-color .15s, box-shadow .15s; }
+  input[type=text]:focus { border-color:var(--focus); box-shadow:0 0 0 3px rgba(255,143,177,.16); }
+  ::placeholder { color:var(--muted); opacity:.85; }
+  .btn { background:var(--grad); color:#fff; height:34px; padding:0 14px; border-radius:10px; font-weight:700; box-shadow:0 5px 14px rgba(224,53,124,.28); transition:filter .15s, transform .1s; }
+  .btn:hover { filter:brightness(1.08); } .btn:active { transform:scale(.97); }
+
+  #list { flex:1; overflow-y:auto; padding:0 10px 10px; }
+  #list::-webkit-scrollbar, #dates::-webkit-scrollbar, #hview::-webkit-scrollbar { width:8px; }
+  #list::-webkit-scrollbar-thumb, #dates::-webkit-scrollbar-thumb, #hview::-webkit-scrollbar-thumb { background:var(--line); border-radius:8px; }
+  .topic { background:var(--card); border:1px solid var(--line); border-radius:13px; margin-bottom:8px; padding:7px 10px 6px; transition:border-color .2s, background .2s; }
+  .topic:hover { border-color:rgba(255,143,177,.4); background:var(--card-h); }
+  .row { display:flex; align-items:center; gap:9px; min-height:28px; padding:2px 0; }
+  .row .txt { flex:1; min-width:0; overflow-wrap:anywhere; cursor:text; }
+  .topic > .row .txt { font-weight:700; }
+  .row.done .txt { text-decoration:line-through; color:var(--done); }
+  .row input[type=text] { height:28px; padding:0 8px; border-radius:8px; border-color:var(--focus); }
+  .badge { font-size:11px; font-weight:700; color:var(--muted); background:var(--bg2); border:1px solid var(--line); padding:0 7px; border-radius:99px; }
+  .acts { display:flex; opacity:0; transition:opacity .15s; }
+  .row:hover .acts, .row:focus-within .acts { opacity:1; }
+  .acts button { display:grid; place-items:center; width:24px; height:24px; border-radius:7px; color:var(--muted); }
+  .acts button:hover { color:var(--danger); background:var(--line); }
+  .acts .i { width:15px; height:15px; }
+  .subs { margin:1px 0 1px 9px; border-left:2px dashed var(--line); padding-left:14px; }
+  .addsub { margin:4px 0 2px 25px; }
+  .addsub input { width:100%; height:28px; font-size:13px; background:transparent; border-style:dashed; }
+  .row input[type=checkbox] { appearance:none; width:18px; height:18px; margin:0; flex-shrink:0; border-radius:50%; border:2px solid var(--muted); cursor:pointer; background:transparent center/12px no-repeat; transition:all .2s; }
+  .row input[type=checkbox]:hover { border-color:var(--focus); }
+  .row input[type=checkbox]:checked { border-color:transparent; background-color:#e0357c; box-shadow:0 3px 9px rgba(224,53,124,.4);
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.500 4.500L19 7'/%3E%3C/svg%3E"); }
+  .empty { color:var(--muted); text-align:center; margin-top:44px; padding:0 14px; }
+  .empty b { display:block; color:var(--text); font-size:15px; margin-bottom:3px; }
+
+  #hist { position:absolute; inset:0; background:var(--bg); display:none; flex-direction:column; z-index:5; }
+  #hist.show { display:flex; }
+  #hist header { display:flex; gap:8px; align-items:center; padding:10px; background:rgba(21,22,43,.9); border-bottom:1px solid var(--line); }
+  #hist header .title { font-weight:800; flex:1; }
+  #hbody { flex:1; display:flex; min-height:0; }
+  #dates { width:118px; overflow-y:auto; border-right:1px solid var(--line); padding:6px; }
+  #dates button { display:block; width:100%; text-align:left; padding:6px 9px; margin-bottom:3px; border-radius:9px; color:var(--muted); font-size:12.5px; }
+  #dates button:hover { background:var(--card-h); color:var(--text); }
+  #dates button.sel { background:var(--grad); color:#fff; font-weight:700; }
+  #hview { flex:1; overflow-y:auto; padding:12px; }
+  .h-topic { margin-bottom:9px; } .h-topic .t { font-weight:700; } .h-sub { margin-left:18px; }
+  .h-topic.done > .t, .h-sub.done { text-decoration:line-through; color:var(--done); }
+  .stat { color:var(--muted); font-size:12px; margin-bottom:8px; }
+  #toast { position:absolute; left:50%; bottom:14px; transform:translate(-50%,10px); background:var(--bg2); border:1px solid var(--line); color:var(--text); padding:7px 13px; border-radius:10px; font-size:12px; font-weight:600; opacity:0; pointer-events:none; transition:all .25s; z-index:10; max-width:92%; text-align:center; }
+  #toast.show { opacity:1; transform:translate(-50%,0); }
+  @media (max-width:320px) { #dates { width:92px; } .date { display:none; } }
+</style>
+</head>
+<body>
+<svg class="sprite" aria-hidden="true">
+  <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f0661f"/><stop offset=".55" stop-color="#e0357c"/><stop offset="1" stop-color="#6f4cff"/></linearGradient></defs>
+  <symbol id="logo" viewBox="0 0 48 48"><rect width="48" height="48" rx="14" fill="url(#lg)"/><path d="M13 24.5l7 7 15-15" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M13 39c4-3 7 3 11 0s7 3 11 0" fill="none" stroke="#fff" stroke-opacity=".65" stroke-width="2.6" stroke-linecap="round"/></symbol>
+  <symbol id="i-history" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-save" viewBox="0 0 24 24"><path d="M12 4v11m0 0l-4-4m4 4l4-4M5 20h14"/></symbol>
+  <symbol id="i-eraser" viewBox="0 0 24 24"><path d="M7 21h10M5.5 13.5l7-7a2 2 0 012.8 0l3.2 3.2a2 2 0 010 2.8L12 19H8l-2.5-2.5a2 2 0 010-3z"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M9 4h6l-1 6 3 3H7l3-3-1-6zM12 13v8"/></symbol>
+  <symbol id="i-min" viewBox="0 0 24 24"><path d="M6 12h12"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12M9 7V4h6v3"/></symbol>
+</svg>
+
+<div id="titlebar">
+  <div class="r1">
+    <div class="brand"><svg aria-hidden="true"><use href="#logo"/></svg><span>Karyadhara</span></div>
+    <button class="tb" id="btnPin" title="Always on top"><svg class="i"><use href="#i-pin"/></svg></button>
+    <button class="tb" id="btnMin" title="Minimize"><svg class="i"><use href="#i-min"/></svg></button>
+    <button class="tb" id="btnClose" title="Close"><svg class="i"><use href="#i-x"/></svg></button>
+  </div>
+  <div class="r2">
+    <span class="date" id="today"></span>
+    <div class="prog" aria-hidden="true"><i id="progFill"></i></div>
+    <span class="pct" id="pct">0%</span>
+    <button class="tb" id="btnHist" title="History"><svg class="i"><use href="#i-history"/></svg></button>
+    <button class="tb" id="btnBackup" title="Backup history to a file"><svg class="i"><use href="#i-save"/></svg></button>
+    <button class="tb" id="btnClear" title="Clear all of today's list"><svg class="i"><use href="#i-eraser"/></svg></button>
+    <button class="tb" id="btnStorage" title="Change where data is stored"><svg class="i"><use href="#i-folder"/></svg></button>
+  </div>
+</div>
+<div id="addbar">
+  <input type="text" id="newTopic" placeholder="Add a topic and press Enter…" autocomplete="off">
+  <button class="btn" id="addTopic">Add</button>
+</div>
+<div id="list"></div>
+
+<div id="hist">
+  <header>
+    <span class="title">History</span>
+    <button class="btn" id="histClose">Back</button>
+  </header>
+  <div id="hbody"><div id="dates"></div><div id="hview"><div class="empty">Pick a date</div></div></div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const uid = () => Math.random().toString(36).slice(2, 10);
+const todayStr = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); };
+const esc = (s) => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ic = (n) => `<svg class="i" aria-hidden="true"><use href="#i-${n}"/></svg>`;
+const clone = (o) => JSON.parse(JSON.stringify(o));
+const stats = (tp) => ({
+  all: tp.length + tp.reduce((n, t) => n + t.subs.length, 0),
+  done: tp.filter(t => t.done).length + tp.reduce((n, t) => n + t.subs.filter(s => s.done).length, 0)
+});
+
+// data = { date: 'YYYY-MM-DD', topics: [...], history: { 'YYYY-MM-DD': [...topics] } }
+let data = null;
+
+// Move open items up; stable within each group
+function organize() {
+  const stable = (arr) => arr.map((x, i) => [x, i]).sort((a, b) => (a[0].done - b[0].done) || (a[1] - b[1])).map(p => p[0]);
+  data.topics.forEach(t => { t.subs = stable(t.subs); });
+  data.topics = stable(data.topics);
+}
+
+// Roll over to a new day: archive yesterday's state, carry forward only open items
+function rolloverIfNeeded() {
+  const t = todayStr();
+  if (data.date === t) return false;
+  data.history[data.date] = clone(data.topics);
+  data.topics = data.topics
+    .filter(tp => !tp.done || tp.subs.some(s => !s.done))
+    .map(tp => ({ ...tp, id: uid(), done: false, subs: tp.subs.filter(s => !s.done).map(s => ({ ...s, id: uid() })) }));
+  data.date = t;
+  return true;
+}
+
+function persist() {
+  data.history[data.date] = clone(data.topics); // today's snapshot is always retrievable too
+  window.api.save(data);
+}
+
+function render() {
+  organize();
+  $('today').textContent = new Date().toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
+  const { all, done } = stats(data.topics);
+  const pct = all ? Math.round(done / all * 100) : 0;
+  $('progFill').style.width = pct + '%'; $('pct').textContent = pct + '%';
+  const list = $('list');
+  if (!data.topics.length) { list.innerHTML = '<div class="empty"><b>Your day, in flow.</b>Nothing planned yet — add your first topic above.</div>'; return; }
+  list.innerHTML = data.topics.map(t => {
+    const sd = t.subs.filter(s => s.done).length;
+    return `
+    <div class="topic" data-id="${t.id}">
+      <div class="row ${t.done ? 'done' : ''}">
+        <input type="checkbox" data-act="toggleTopic" ${t.done ? 'checked' : ''}>
+        <span class="txt" data-act="editTopic">${esc(t.text)}</span>
+        ${t.subs.length ? `<span class="badge">${sd}/${t.subs.length}</span>` : ''}
+        <span class="acts"><button data-act="delTopic" title="Delete">${ic('trash')}</button></span>
+      </div>
+      <div class="subs">
+        ${t.subs.map(s => `
+          <div class="row ${s.done ? 'done' : ''}" data-sid="${s.id}">
+            <input type="checkbox" data-act="toggleSub" ${s.done ? 'checked' : ''}>
+            <span class="txt" data-act="editSub">${esc(s.text)}</span>
+            <span class="acts"><button data-act="delSub" title="Delete">${ic('trash')}</button></span>
+          </div>`).join('')}
+      </div>
+      <div class="addsub"><input type="text" data-act="addSub" placeholder="+ sub-topic"></div>
+    </div>`;
+  }).join('');
+}
+
+const topicOf = (el) => data.topics.find(t => t.id === el.closest('.topic').dataset.id);
+
+function editInline(span, apply) {
+  const inp = document.createElement('input');
+  inp.type = 'text'; inp.value = span.textContent;
+  span.replaceWith(inp); inp.focus(); inp.select();
+  let finished = false;
+  const done = (ok) => { if (finished) return; finished = true; if (ok && inp.value.trim()) apply(inp.value.trim()); persist(); render(); };
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') done(true); if (e.key === 'Escape') done(false); });
+  inp.addEventListener('blur', () => done(true));
+}
+
+$('list').addEventListener('click', (e) => {
+  const el = e.target.closest('[data-act]'); if (!el) return;
+  const act = el.dataset.act;
+  const t = topicOf(el);
+  const sid = el.closest('[data-sid]')?.dataset.sid;
+  const sub = sid && t.subs.find(s => s.id === sid);
+  if (act === 'toggleTopic') t.done = el.checked;
+  else if (act === 'toggleSub') sub.done = el.checked;
+  else if (act === 'delTopic') data.topics = data.topics.filter(x => x !== t);
+  else if (act === 'delSub') t.subs = t.subs.filter(x => x !== sub);
+  else if (act === 'editTopic') return editInline(el, v => t.text = v);
+  else if (act === 'editSub') return editInline(el, v => sub.text = v);
+  else return;
+  persist(); render();
+});
+$('list').addEventListener('keydown', (e) => {
+  if (e.target.dataset.act === 'addSub' && e.key === 'Enter' && e.target.value.trim()) {
+    const t = topicOf(e.target);
+    t.subs.push({ id: uid(), text: e.target.value.trim(), done: false });
+    persist(); render();
+    const again = document.querySelector(`.topic[data-id="${t.id}"] .addsub input`); if (again) again.focus();
+  }
+});
+
+function addTopic() {
+  const i = $('newTopic');
+  if (!i.value.trim()) return;
+  data.topics.push({ id: uid(), text: i.value.trim(), done: false, subs: [] });
+  i.value = ''; persist(); render();
+}
+$('addTopic').onclick = addTopic;
+$('newTopic').addEventListener('keydown', e => { if (e.key === 'Enter') addTopic(); });
+
+// Window controls
+const pinBtn = $('btnPin');
+const setPin = (v) => { pinBtn.classList.toggle('on', v); pinBtn.title = v ? 'Always on top: ON' : 'Always on top: OFF'; };
+pinBtn.onclick = async () => setPin(await window.api.togglePin());
+$('btnMin').onclick = () => window.api.minimize();
+$('btnClose').onclick = () => window.api.close();
+
+// History
+function showHistory() {
+  $('hist').classList.add('show');
+  const dates = Object.keys(data.history).sort().reverse();
+  $('dates').innerHTML = dates.map(d => `<button data-d="${d}">${d}</button>`).join('') || '<div class="empty" style="margin:10px">No history yet</div>';
+  if (dates.length) pickDate(dates[0]);
+}
+function pickDate(d) {
+  document.querySelectorAll('#dates button').forEach(b => b.classList.toggle('sel', b.dataset.d === d));
+  const topics = data.history[d] || [];
+  const { all, done } = stats(topics);
+  $('hview').innerHTML =
+    `<div class="stat">${d} — ${done} of ${all} items completed</div>` +
+    (topics.map(t => `<div class="h-topic ${t.done ? 'done' : ''}"><div class="t">${t.done ? '☑' : '☐'} ${esc(t.text)}</div>` +
+      t.subs.map(s => `<div class="h-sub ${s.done ? 'done' : ''}">${s.done ? '☑' : '☐'} ${esc(s.text)}</div>`).join('') + '</div>').join('') || '<div class="empty">Empty day</div>');
+}
+$('btnHist').onclick = showHistory;
+$('histClose').onclick = () => $('hist').classList.remove('show');
+$('dates').addEventListener('click', e => { if (e.target.dataset.d) pickDate(e.target.dataset.d); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('hist').classList.contains('show') && !e.target.matches('input')) $('hist').classList.remove('show'); });
+
+// Backup: collate history into one file, named with the save date-time, wherever the user picks
+function toast(msg) {
+  const el = $('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => el.classList.remove('show'), 3500);
+}
+$('btnBackup').onclick = async () => {
+  const res = await window.api.backupHistory();
+  toast(res && res.ok ? 'History backed up ✓' : 'Backup canceled');
+};
+
+// Clear the whole of today's list in one go (per-item delete is the trash icon on each row/sub-row)
+$('btnClear').onclick = () => {
+  if (!data.topics.length) { toast('Already empty'); return; }
+  if (!confirm("Clear all of today's topics and sub-topics? This can't be undone.")) return;
+  data.topics = [];
+  persist(); render();
+  toast("Today's list cleared");
+};
+
+// Let the user move data/history to a different folder at any time
+$('btnStorage').onclick = async () => {
+  const res = await window.api.changeDataDir();
+  if (res && res.ok) toast('Data moved — using: ' + res.path);
+  else if (res && res.error) toast(res.error);
+};
+
+// Init + midnight watcher
+(async () => {
+  data = await window.api.load();
+  if (!data) data = { date: todayStr(), topics: [], history: {} };
+  data.history = data.history || {};
+  rolloverIfNeeded();
+  persist(); render();
+  setPin(await window.api.getPin());
+  setInterval(() => { if (rolloverIfNeeded()) { persist(); render(); } }, 30000);
+})();
+</script>
+</body>
+</html>

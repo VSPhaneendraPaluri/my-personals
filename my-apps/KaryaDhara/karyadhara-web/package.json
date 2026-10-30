@@ -1,0 +1,21 @@
+{
+  "name": "karyadhara-web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Karyadhara — multi-user daily to-do web app — each user's to-dos and history stay private to their own account.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": { "node": ">=18" },
+  "dependencies": {
+    "express": "^4.19.2",
+    "pg": "^8.12.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "cookie-parser": "^1.4.6",
+    "helmet": "^7.1.0",
+    "express-rate-limit": "^7.4.0",
+    "dotenv": "^16.4.5"
+  }
+}
