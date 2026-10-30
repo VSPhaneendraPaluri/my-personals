@@ -255,6 +255,7 @@ h1,h2,h3,p{margin:0}
 #toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translate(-50%,16px);z-index:80;max-width:min(92vw,420px);
   background:var(--bg2);border:1px solid var(--line);box-shadow:var(--shadow);padding:11px 18px;border-radius:14px;font-size:.92rem;font-weight:600;opacity:0;pointer-events:none;transition:all .3s}
 #toast.show{opacity:1;transform:translate(-50%,0)}
+#toast.error{background:color-mix(in srgb,var(--danger) 16%,var(--bg2));border-color:color-mix(in srgb,var(--danger) 45%,var(--line));color:var(--danger)}
 
 /* ---------- breakpoints ---------- */
 @media(max-width:559px){
@@ -329,7 +330,7 @@ h1,h2,h3,p{margin:0}
 
   <section class="panel form" aria-labelledby="formTitle">
     <div class="seg" role="tablist">
-      <button type="button" id="tabLogin" role="tab" class="on">Sign in</button>
+      <button type="button" id="tabLogin" role="tab" class="on">Log in</button>
       <button type="button" id="tabReg" role="tab">Create account</button>
     </div>
     <h2 id="formTitle">Welcome back</h2>
@@ -337,8 +338,8 @@ h1,h2,h3,p{margin:0}
 
     <!-- ── Step 1: email + password (login) / email + password (register) ── -->
     <div id="pwStep">
-      <label for="authEmail">Email</label>
-      <div class="field"><input type="email" id="authEmail" autocomplete="username" inputmode="email" autocapitalize="none" spellcheck="false" placeholder="you@example.com"></div>
+      <label for="authIdentifier">Email</label>
+      <div class="field"><input type="email" id="authIdentifier" autocomplete="username" inputmode="email" autocapitalize="none" spellcheck="false" placeholder="you@example.com"></div>
       <div id="pwFields">
         <label for="authPassword">Password</label>
         <div class="field">
@@ -347,16 +348,16 @@ h1,h2,h3,p{margin:0}
         </div>
       </div>
       <div class="auth-methods">
-        <button class="btn" id="authBtn">Sign in</button>
+        <button class="btn" id="authBtn">Log in</button>
         <div class="divider">or</div>
-        <button class="btn ghost" id="passkeyBtn"><svg class="i"><use href="#i-fingerprint"/></svg>Sign in with Passkey</button>
-        <button class="btn ghost" id="otpTriggerBtn"><svg class="i"><use href="#i-mail"/></svg>Sign in with Email Code</button>
+        <button class="btn ghost" id="passkeyBtn"><svg class="i"><use href="#i-fingerprint"/></svg>Log in with Passkey</button>
+        <button class="btn ghost" id="otpTriggerBtn"><svg class="i"><use href="#i-mail"/></svg>Log in with Email Code</button>
       </div>
     </div>
 
-    <!-- ── Step 2: OTP entry (shown after email code is sent) ── -->
+    <!-- ── Step 2: OTP entry (shown after an email/SMS code is sent) ── -->
     <div id="otpStep">
-      <p style="color:var(--muted);font-size:.9rem;margin:0 0 16px">We sent a 6-digit code to <strong id="otpEmailLabel"></strong></p>
+      <p style="color:var(--muted);font-size:.9rem;margin:0 0 16px" id="otpIntro">We sent a 6-digit code to <strong id="otpDestLabel"></strong></p>
       <label for="otpCode">Enter code</label>
       <div class="field"><input type="text" id="otpCode" class="otp-input" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000"></div>
       <button class="btn" id="otpBtn">Verify Code</button>
@@ -449,9 +450,11 @@ const stats = (tp) => tp.reduce((c, t) => {
 }, { all: 0, done: 0 });
 const parseDay = (iso) => new Date(iso + 'T00:00:00');
 
-function toast(msg) {
-  const el = $('toast'); el.textContent = msg; el.classList.add('show');
-  clearTimeout(toast._t); toast._t = setTimeout(() => el.classList.remove('show'), 3000);
+function toast(msg, type) {
+  const el = $('toast'); el.textContent = msg;
+  el.classList.toggle('error', type === 'error');
+  el.classList.add('show');
+  clearTimeout(toast._t); toast._t = setTimeout(() => el.classList.remove('show'), type === 'error' ? 4500 : 3000);
 }
 
 async function api(path, opts) {
@@ -533,7 +536,8 @@ document.querySelector('meta[name=theme-color]').content = document.documentElem
 //  Auth screen state
 // ─────────────────────────────────────────────────────────────────────────────
 let authMode = 'login'; // 'login' | 'register'
-let otpEmail = '';
+let otpDest = '';        // identifier the current code was sent to
+let otpPurpose = 'login'; // 'login' | 'register' — which endpoint /verify hits
 
 function setAuthErr(msg) { $('authErr').textContent = msg || ''; }
 
@@ -542,9 +546,15 @@ function showPwStep() {
   $('otpStep').classList.remove('show');
   setAuthErr('');
 }
-function showOtpStep(email) {
-  otpEmail = email;
-  $('otpEmailLabel').textContent = email;
+// purpose: 'login' (optional 2nd sign-in path) or 'register' (mandatory
+// first-time verification of a brand-new account).
+function showOtpStep(dest, purpose) {
+  otpDest = dest;
+  otpPurpose = purpose || 'login';
+  $('otpDestLabel').textContent = dest;
+  $('otpIntro').firstChild.textContent = purpose === 'register'
+    ? 'Almost there — verify your email. We sent a 6-digit code to '
+    : 'We sent a 6-digit code to ';
   $('otpCode').value = '';
   $('pwStep').style.display = 'none';
   $('otpStep').classList.add('show');
@@ -558,7 +568,7 @@ function renderAuthMode() {
   $('tabReg').classList.toggle('on', !login);
   $('tabLogin').setAttribute('aria-selected', login);
   $('tabReg').setAttribute('aria-selected', !login);
-  $('authBtn').textContent = login ? 'Sign in' : 'Create account';
+  $('authBtn').textContent = login ? 'Log in' : 'Create account';
   $('formTitle').textContent = login ? 'Welcome back' : 'Start your flow';
   $('formSub').textContent = login ? 'Pick up right where you left off.' : 'Free, private and takes ten seconds.';
   $('authPassword').autocomplete = login ? 'current-password' : 'new-password';
@@ -586,36 +596,46 @@ $('eyeBtn').onclick = () => {
   $('eyeBtn').setAttribute('aria-label', show ? 'Hide password' : 'Show password');
 };
 
-// Password login / register
+// Password login / register. Both can come back with { pending:true } instead
+// of a session — that means a verification code was (re)sent and the OTP
+// step should be shown before the person is actually logged in.
 $('authBtn').onclick = async () => {
-  const email = $('authEmail').value.trim();
+  const identifier = $('authIdentifier').value.trim();
   const password = $('authPassword').value;
   const btn = $('authBtn');
   setAuthErr('');
   btn.disabled = true;
   btn.textContent = 'Please wait…';
   try {
-    await api(authMode === 'login' ? '/login' : '/register', {
-      method: 'POST', body: JSON.stringify({ email, password })
+    const result = await api(authMode === 'login' ? '/login' : '/register', {
+      method: 'POST', body: JSON.stringify({ identifier, password })
     });
     $('authPassword').value = '';
-    await boot();
-  } catch (e) { setAuthErr(e.message); }
+    if (result.pending) {
+      showOtpStep(result.destination, 'register');
+      toast('Code sent! Check your inbox.');
+    } else {
+      await boot();
+    }
+  } catch (e) {
+    setAuthErr(e.message);
+    if (authMode === 'login') toast(e.message || 'Login failed.', 'error');
+  }
   btn.disabled = false;
-  btn.textContent = authMode === 'login' ? 'Sign in' : 'Create account';
+  btn.textContent = authMode === 'login' ? 'Log in' : 'Create account';
 };
-['authEmail','authPassword'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') $('authBtn').click(); }));
+['authIdentifier','authPassword'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') $('authBtn').click(); }));
 
 // ── Passkey login ──────────────────────────────────────────────────────────
 $('passkeyBtn').onclick = async () => {
-  const email = $('authEmail').value.trim();
-  if (!email) { setAuthErr('Enter your email first.'); $('authEmail').focus(); return; }
+  const identifier = $('authIdentifier').value.trim();
+  if (!identifier) { setAuthErr('Enter your email first.'); $('authIdentifier').focus(); return; }
   setAuthErr('');
   $('passkeyBtn').disabled = true;
   $('passkeyBtn').innerHTML = ic('fingerprint') + ' Waiting for biometric…';
   try {
     // 1. Get assertion options from server
-    const opts = await api('/passkey/login/begin', { method: 'POST', body: JSON.stringify({ email }) });
+    const opts = await api('/passkey/login/begin', { method: 'POST', body: JSON.stringify({ identifier }) });
     const { userId, ...assertionOpts } = opts;
 
     // 2. Trigger OS biometric / PIN prompt
@@ -631,30 +651,30 @@ $('passkeyBtn').onclick = async () => {
 
     await boot();
   } catch (e) {
-    if (e.name === 'NotAllowedError') {
-      setAuthErr('Passkey prompt was cancelled or timed out.');
-    } else {
-      setAuthErr(e.message || 'Passkey sign-in failed.');
-    }
+    const msg = e.name === 'NotAllowedError'
+      ? 'Passkey prompt was cancelled or timed out.'
+      : (e.message || 'Passkey sign-in failed.');
+    setAuthErr(msg);
+    toast(msg, 'error');
   }
   $('passkeyBtn').disabled = false;
-  $('passkeyBtn').innerHTML = ic('fingerprint') + ' Sign in with Passkey';
+  $('passkeyBtn').innerHTML = ic('fingerprint') + ' Log in with Passkey';
 };
 
-// ── OTP login ──────────────────────────────────────────────────────────────
+// ── OTP login (optional passwordless path for an already-verified account) ──
 $('otpTriggerBtn').onclick = async () => {
-  const email = $('authEmail').value.trim();
-  if (!email) { setAuthErr('Enter your email first.'); $('authEmail').focus(); return; }
+  const identifier = $('authIdentifier').value.trim();
+  if (!identifier) { setAuthErr('Enter your email first.'); $('authIdentifier').focus(); return; }
   setAuthErr('');
   $('otpTriggerBtn').disabled = true;
   $('otpTriggerBtn').textContent = 'Sending…';
   try {
-    await api('/otp/send', { method: 'POST', body: JSON.stringify({ email }) });
-    showOtpStep(email);
-    toast('Code sent! Check your inbox.');
+    await api('/otp/send', { method: 'POST', body: JSON.stringify({ identifier }) });
+    showOtpStep(identifier, 'login');
+    toast('If that account exists, a code is on its way.');
   } catch (e) { setAuthErr(e.message || 'Could not send code.'); }
   $('otpTriggerBtn').disabled = false;
-  $('otpTriggerBtn').innerHTML = ic('mail') + ' Sign in with Email Code';
+  $('otpTriggerBtn').innerHTML = ic('mail') + ' Log in with Email Code';
 };
 
 $('otpBtn').onclick = async () => {
@@ -664,16 +684,34 @@ $('otpBtn').onclick = async () => {
   $('otpBtn').disabled = true;
   $('otpBtn').textContent = 'Verifying…';
   try {
-    await api('/otp/verify', { method: 'POST', body: JSON.stringify({ email: otpEmail, code }) });
+    const endpoint = otpPurpose === 'register' ? '/register/verify' : '/otp/verify';
+    await api(endpoint, { method: 'POST', body: JSON.stringify({ identifier: otpDest, code }) });
     await boot();
-  } catch (e) { setAuthErr(e.message || 'Invalid or expired code.'); }
+  } catch (e) {
+    const msg = e.message || 'Invalid or expired code.';
+    setAuthErr(msg);
+    if (otpPurpose === 'login') toast(msg, 'error');
+  }
   $('otpBtn').disabled = false;
   $('otpBtn').textContent = 'Verify Code';
 };
 
 $('otpCode').addEventListener('keydown', e => { if (e.key === 'Enter') $('otpBtn').click(); });
 $('otpBack').onclick = showPwStep;
-$('otpResend').onclick = () => $('otpTriggerBtn').click();
+$('otpResend').onclick = async () => {
+  setAuthErr('');
+  $('otpResend').disabled = true;
+  try {
+    if (otpPurpose === 'register') {
+      const result = await api('/register/resend', { method: 'POST', body: JSON.stringify({ identifier: otpDest }) });
+      showOtpStep(result.destination, 'register');
+    } else {
+      await api('/otp/send', { method: 'POST', body: JSON.stringify({ identifier: otpDest }) });
+    }
+    toast('Code resent.');
+  } catch (e) { setAuthErr(e.message || 'Could not resend code.'); }
+  $('otpResend').disabled = false;
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Passkey Manager (in-app modal)
@@ -963,7 +1001,7 @@ async function boot() {
   try {
     const me = await api('/me');
     $('auth').classList.add('hidden'); $('app').classList.remove('hidden');
-    $('whoami').textContent = me.email; $('whoami').title = me.email;
+    $('whoami').textContent = me.identifier; $('whoami').title = me.identifier;
     data = await api('/data');
     data.history = data.history || {};
     if (rolloverIfNeeded()) persist();

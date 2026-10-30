@@ -8,6 +8,7 @@ const {
 } = require('@simplewebauthn/server');
 const { pool } = require('../db');
 const { setAuthCookie, requireAuth } = require('../auth');
+const { parseIdentifier, identifierHint, MOBILE_SIGNUP_ENABLED } = require('../lib/identifier');
 const rateLimit = require('express-rate-limit');
 
 const router = express.Router();
@@ -65,10 +66,11 @@ function toBase64url(buf) {
 router.post('/passkey/register/begin', pkLimit, requireAuth, async (req, res) => {
   try {
     const { rows } = await pool.query(
-      'SELECT email FROM users WHERE id = $1', [req.userId]
+      'SELECT email, phone FROM users WHERE id = $1', [req.userId]
     );
     if (!rows.length) return res.status(401).json({ error: 'User not found.' });
     const user = rows[0];
+    const label = user.email || user.phone || `user-${req.userId}`;
 
     // Exclude credentials the user already registered (prevent duplicates)
     const existing = await pool.query(
@@ -80,8 +82,8 @@ router.post('/passkey/register/begin', pkLimit, requireAuth, async (req, res) =>
       rpName: RP_NAME,
       rpID: RP_ID,
       userID: Uint8Array.from(Buffer.from(String(req.userId))),
-      userName: user.email,
-      userDisplayName: user.email,
+      userName: label,
+      userDisplayName: label,
       attestationType: 'none',
       excludeCredentials: existing.rows.map(c => ({
         id: c.id,
@@ -159,16 +161,18 @@ router.post('/passkey/register/complete', pkLimit, requireAuth, async (req, res)
 // ═══════════════════════════════════════════════════════════════════════════
 
 // POST /api/passkey/login/begin
-// Body: { email: string }
+// Body: { identifier: string } (email or mobile number)
 router.post('/passkey/login/begin', pkLimit, async (req, res) => {
-  const email = String(req.body.email || '').trim().toLowerCase();
-  if (!email) return res.status(400).json({ error: 'Email is required.' });
+  const raw = req.body.identifier ?? req.body.email ?? req.body.phone;
+  const parsed = parseIdentifier(raw);
+  if (!parsed) return res.status(400).json({ error: identifierHint() });
 
   try {
+    const column = parsed.type === 'email' ? 'email' : 'phone';
     const { rows } = await pool.query(
-      'SELECT id FROM users WHERE email = $1', [email]
+      `SELECT id FROM users WHERE ${column} = $1`, [parsed.value]
     );
-    if (!rows.length) return res.status(404).json({ error: 'No account with that email.' });
+    if (!rows.length) return res.status(404).json({ error: MOBILE_SIGNUP_ENABLED ? 'No account with that email or mobile number.' : 'No account with that email.' });
 
     const userId = rows[0].id;
     const creds = await pool.query(

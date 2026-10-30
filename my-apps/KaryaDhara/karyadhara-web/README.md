@@ -44,6 +44,20 @@ Requires Node.js 18+ and a local Postgres instance.
 
 Then open http://localhost:3000.
 
+## Sign-up and sign-in (email only, for now)
+
+Accounts are created with an email address + a password. After "Create account", a 6-digit
+code is emailed to that address (via your SMTP settings) and the account only becomes usable
+once that code is confirmed — there's no logged-in-but-unverified state. After that, signing
+back in works either with the password or with a fresh emailed code ("Log in with Email Code").
+
+Mobile-number sign-up (OTP by SMS) is built but switched off for now — see
+`MOBILE_SIGNUP_ENABLED` in `lib/identifier.js`. It uses the free, open-source
+[SMS Gateway for Android](https://github.com/capcom6/android-sms-gateway) project instead of a
+paid vendor like Twilio (a spare Android phone with its own SIM sends the texts). The
+`SMS_GATEWAY_*` variables in `.env.example` are ready for whenever it's turned back on; until
+then they're unused and every identifier must be an email address.
+
 ## Project layout
 
 - `server.js` — Express app: security headers, routing, static frontend
