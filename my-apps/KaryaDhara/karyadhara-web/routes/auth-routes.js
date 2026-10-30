@@ -100,6 +100,9 @@ router.post('/register', authLimiter, otpSendLimiter, async (req, res) => {
     if (e && e.code === 'SMS_NOT_CONFIGURED') {
       return res.status(500).json({ error: 'SMS verification is not set up on this server yet. Please sign up with email instead.' });
     }
+    if (e && e.code === 'EMAIL_NOT_CONFIGURED') {
+      return res.status(500).json({ error: 'Email verification is not set up on this server yet. Please contact the site administrator.' });
+    }
     console.error('[register]', e);
     res.status(500).json({ error: 'Could not create account. Please try again.' });
   }
@@ -140,6 +143,9 @@ router.post('/register/resend', otpSendLimiter, async (req, res) => {
   } catch (e) {
     if (e && e.code === 'SMS_NOT_CONFIGURED') {
       return res.status(500).json({ error: 'SMS verification is not set up on this server yet.' });
+    }
+    if (e && e.code === 'EMAIL_NOT_CONFIGURED') {
+      return res.status(500).json({ error: 'Email verification is not set up on this server yet. Please contact the site administrator.' });
     }
     console.error('[register/resend]', e);
     res.status(500).json({ error: 'Could not resend code. Please try again.' });

@@ -13,12 +13,24 @@ function getMailTransporter() {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
       },
+      // Fail within ~10s instead of hanging if the SMTP host/port is
+      // unreachable (e.g. the host blocks outbound SMTP) — a slow, silent
+      // hang is worse than a clear error the UI can show.
+      connectionTimeout: 10_000,
+      greetingTimeout: 10_000,
+      socketTimeout: 10_000,
     });
   }
   return mailTransporter;
 }
 
 async function sendOtpEmail(email, code, { purpose } = {}) {
+  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    const err = new Error('Email is not configured on this server.');
+    err.code = 'EMAIL_NOT_CONFIGURED';
+    throw err;
+  }
+
   const heading = purpose === 'register' ? 'Verify your email' : 'Your sign-in code';
   const intro = purpose === 'register'
     ? 'Enter this code to finish creating your Karyadhara account:'
