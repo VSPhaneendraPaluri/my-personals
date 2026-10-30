@@ -15,7 +15,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script>
-  // Apply saved/system theme before first paint (no flash)
   (function () {
     var t; try { t = localStorage.getItem('karyadhara-theme'); } catch (e) {}
     if (!t) t = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
@@ -61,6 +60,7 @@ h1,h2,h3,p{margin:0}
 .btn:active{transform:translateY(0) scale(.98)}
 .btn[disabled]{opacity:.65;pointer-events:none}
 .btn.ghost{background:var(--card);color:var(--text);box-shadow:none;border:1px solid var(--line)}
+.btn.ghost:hover{background:var(--card-h)}
 .field{position:relative;display:flex;align-items:center}
 .field input,.inp{width:100%;min-height:48px;background:var(--card);border:1px solid var(--line);color:var(--text);
   padding:0 16px;border-radius:14px;outline:none;font-size:16px;transition:border-color .15s,box-shadow .15s,background .15s}
@@ -93,9 +93,40 @@ h1,h2,h3,p{margin:0}
 .form label{display:block;font-size:.82rem;font-weight:600;color:var(--muted);margin:16px 0 6px}
 .form .eye{position:absolute;right:4px;width:42px;height:42px}
 .form #authPassword{padding-right:48px}
-#authBtn{width:100%;margin-top:22px}
+
+/* -- auth method switcher -- */
+.auth-methods{display:flex;flex-direction:column;gap:10px;margin-top:18px}
+.divider{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:.82rem;margin:4px 0}
+.divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--line)}
+
+/* -- OTP step -- */
+#otpStep{display:none}
+#otpStep.show{display:block}
+.otp-input{letter-spacing:.2em;font-size:1.5rem;font-weight:700;text-align:center}
+.back-link{background:none;border:0;color:var(--muted);font-size:.85rem;cursor:pointer;padding:0;margin-top:10px;display:inline-flex;align-items:center;gap:4px}
+.back-link:hover{color:var(--text)}
+
+/* -- passkey badge -- */
+.pk-badge{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;font-weight:600;
+  background:color-mix(in srgb,var(--focus) 14%,transparent);color:var(--focus);
+  border:1px solid color-mix(in srgb,var(--focus) 30%,transparent);
+  border-radius:99px;padding:3px 10px;margin-bottom:4px}
+
+#authBtn{width:100%;margin-top:10px}
+#passkeyBtn{width:100%}
+#otpBtn{width:100%;margin-top:10px}
+#otpSendBtn{width:100%;margin-top:10px}
 #authErr{color:var(--danger);font-size:.9rem;margin-top:12px;min-height:22px;font-weight:500}
-.fine{margin-top:6px;text-align:center;color:var(--muted);font-size:.8rem}
+.fine{margin-top:10px;text-align:center;color:var(--muted);font-size:.8rem}
+
+/* -- passkey manager in app -- */
+.pk-list{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.pk-item{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 14px}
+.pk-item .pk-name{flex:1;font-size:.92rem;font-weight:600}
+.pk-item .pk-meta{font-size:.78rem;color:var(--muted)}
+.pk-item .pk-del{color:var(--danger);font-size:.8rem;font-weight:600;padding:4px 10px;border-radius:8px;border:1px solid color-mix(in srgb,var(--danger) 35%,transparent)}
+.pk-item .pk-del:hover{background:color-mix(in srgb,var(--danger) 14%,transparent)}
+
 @media(min-width:900px){
   .auth{grid-template-columns:1.1fr .9fr;gap:72px;align-items:center}
   .hero{text-align:left}.hero .mark{margin-left:0;width:72px;height:72px}.hero .tag{margin-left:0}
@@ -168,7 +199,6 @@ h1,h2,h3,p{margin:0}
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.500 4.500L19 7'/%3E%3C/svg%3E");
   box-shadow:0 4px 12px rgba(224,53,124,.4)}
 .topic:has(.row.done:first-child) .subs .txt{opacity:.75}
-
 .empty{grid-column:1/-1;text-align:center;padding:36px 16px;color:var(--muted)}
 .empty svg.art{width:150px;height:auto;margin:0 auto 10px;display:block}
 .empty h3{color:var(--text);font-size:1.2rem;font-weight:800;letter-spacing:-.02em;margin-bottom:4px}
@@ -214,6 +244,13 @@ h1,h2,h3,p{margin:0}
   #hview{padding:26px 30px}
 }
 
+/* ---------- passkey modal ---------- */
+#pkModal .sheet{padding:0}
+#pkModal .sheet header{padding:16px 20px}
+#pkBody{padding:20px;overflow-y:auto;flex:1}
+#pkBody h3{font-size:1rem;font-weight:700;margin:0 0 12px}
+#pkBody .sub{color:var(--muted);font-size:.88rem;margin:-8px 0 14px}
+
 /* ---------- toast ---------- */
 #toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translate(-50%,16px);z-index:80;max-width:min(92vw,420px);
   background:var(--bg2);border:1px solid var(--line);box-shadow:var(--shadow);padding:11px 18px;border-radius:14px;font-size:.92rem;font-weight:600;opacity:0;pointer-events:none;transition:all .3s}
@@ -222,7 +259,7 @@ h1,h2,h3,p{margin:0}
 /* ---------- breakpoints ---------- */
 @media(max-width:559px){
   .side{grid-template-columns:1fr;grid-template-areas:"brand" "sum" "nav";gap:12px}
-  .nav{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;padding:5px;background:var(--card);border:1px solid var(--line);border-radius:18px}
+  .nav{display:grid;grid-template-columns:repeat(6,1fr);gap:2px;padding:5px;background:var(--card);border:1px solid var(--line);border-radius:18px}
   .nav button{flex-direction:column;gap:1px;min-height:54px;padding:4px 0;font-size:.68rem;border-radius:13px}
   .nav .lbl{display:block}
 }
@@ -270,6 +307,9 @@ h1,h2,h3,p{margin:0}
   <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5 9-5zM3 13l9 5 9-5"/></symbol>
   <symbol id="i-repeat" viewBox="0 0 24 24"><path d="M17 2l4 4-4 4M3 11V9a3 3 0 013-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 01-3 3H3"/></symbol>
   <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></symbol>
+  <symbol id="i-fingerprint" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12"/><path d="M12 6c-3.31 0-6 2.69-6 6"/><path d="M12 10c-1.1 0-2 .9-2 2"/><path d="M12 14v.01M12 18v.01M16 12c0 2.21-1.79 4-4 4"/><path d="M20 12c0 4.42-3.58 8-8 8"/><path d="M22 12c0 5.52-4.48 10-10 10"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></symbol>
+  <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="5"/><path d="M21 3l-9.4 9.4M16 8l2 2"/></symbol>
 </svg>
 
 <!-- ============ AUTH ============ -->
@@ -278,14 +318,15 @@ h1,h2,h3,p{margin:0}
     <svg class="mark" aria-hidden="true"><use href="#logo"/></svg>
     <h1>Karyadhara</h1>
     <div class="deva" lang="sa">कार्यधारा · a steady stream of work</div>
-    <p class="tag">Your day, in flow. Plan it, tick it off, and let tomorrow pick up what’s left.</p>
+    <p class="tag">Your day, in flow. Plan it, tick it off, and let tomorrow pick up what's left.</p>
     <ul class="perks">
       <li><span class="pi"><svg class="i"><use href="#i-layers"/></svg></span><div><b>Topics &amp; sub-topics</b><span>Break big goals into small, satisfying wins.</span></div></li>
       <li><span class="pi"><svg class="i"><use href="#i-repeat"/></svg></span><div><b>Rolls over daily</b><span>Unfinished work carries into the next day automatically.</span></div></li>
       <li><span class="pi"><svg class="i"><use href="#i-history"/></svg></span><div><b>Date-wise history</b><span>Look back at any day, or download a full backup.</span></div></li>
-      <li><span class="pi"><svg class="i"><use href="#i-lock"/></svg></span><div><b>Private to you</b><span>Your list lives behind your own account only.</span></div></li>
+      <li><span class="pi"><svg class="i"><use href="#i-fingerprint"/></svg></span><div><b>Passkey sign-in</b><span>Face ID, fingerprint or PIN — no password to remember.</span></div></li>
     </ul>
   </section>
+
   <section class="panel form" aria-labelledby="formTitle">
     <div class="seg" role="tablist">
       <button type="button" id="tabLogin" role="tab" class="on">Sign in</button>
@@ -293,16 +334,40 @@ h1,h2,h3,p{margin:0}
     </div>
     <h2 id="formTitle">Welcome back</h2>
     <p class="sub" id="formSub">Pick up right where you left off.</p>
-    <label for="authEmail">Email</label>
-    <div class="field"><input type="email" id="authEmail" autocomplete="username" inputmode="email" autocapitalize="none" spellcheck="false" placeholder="you@example.com"></div>
-    <label for="authPassword">Password</label>
-    <div class="field">
-      <input type="password" id="authPassword" autocomplete="current-password" placeholder="At least 8 characters">
-      <button type="button" class="ico eye" id="eyeBtn" aria-label="Show password"><svg class="i"><use href="#i-eye"/></svg></button>
+
+    <!-- ── Step 1: email + password (login) / email + password (register) ── -->
+    <div id="pwStep">
+      <label for="authEmail">Email</label>
+      <div class="field"><input type="email" id="authEmail" autocomplete="username" inputmode="email" autocapitalize="none" spellcheck="false" placeholder="you@example.com"></div>
+      <div id="pwFields">
+        <label for="authPassword">Password</label>
+        <div class="field">
+          <input type="password" id="authPassword" autocomplete="current-password" placeholder="At least 8 characters">
+          <button type="button" class="ico eye" id="eyeBtn" aria-label="Show password"><svg class="i"><use href="#i-eye"/></svg></button>
+        </div>
+      </div>
+      <div class="auth-methods">
+        <button class="btn" id="authBtn">Sign in</button>
+        <div class="divider">or</div>
+        <button class="btn ghost" id="passkeyBtn"><svg class="i"><use href="#i-fingerprint"/></svg>Sign in with Passkey</button>
+        <button class="btn ghost" id="otpTriggerBtn"><svg class="i"><use href="#i-mail"/></svg>Sign in with Email Code</button>
+      </div>
     </div>
-    <button class="btn" id="authBtn">Sign in</button>
+
+    <!-- ── Step 2: OTP entry (shown after email code is sent) ── -->
+    <div id="otpStep">
+      <p style="color:var(--muted);font-size:.9rem;margin:0 0 16px">We sent a 6-digit code to <strong id="otpEmailLabel"></strong></p>
+      <label for="otpCode">Enter code</label>
+      <div class="field"><input type="text" id="otpCode" class="otp-input" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000"></div>
+      <button class="btn" id="otpBtn">Verify Code</button>
+      <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center">
+        <button class="back-link" id="otpBack"><svg class="i" style="width:16px;height:16px"><use href="#i-x"/></svg>Back</button>
+        <button class="back-link" id="otpResend">Resend code</button>
+      </div>
+    </div>
+
     <div id="authErr" role="alert"></div>
-    <p class="fine">Passwords are stored as a one-way hash. Nobody can read yours.</p>
+    <p class="fine" id="authFine">Passwords are stored as a one-way hash. Nobody can read yours.</p>
   </section>
 </main>
 
@@ -313,7 +378,8 @@ h1,h2,h3,p{margin:0}
     <nav class="nav" aria-label="Actions">
       <button id="btnHist" title="History" aria-label="History"><svg class="i"><use href="#i-history"/></svg><span class="lbl">History</span></button>
       <button id="btnBackup" title="Download my history" aria-label="Download backup"><svg class="i"><use href="#i-download"/></svg><span class="lbl">Backup</span></button>
-      <button id="btnClear" title="Clear today’s list" aria-label="Clear today’s list"><svg class="i"><use href="#i-eraser"/></svg><span class="lbl">Clear</span></button>
+      <button id="btnClear" title="Clear today's list" aria-label="Clear today's list"><svg class="i"><use href="#i-eraser"/></svg><span class="lbl">Clear</span></button>
+      <button id="btnPasskeys" title="Manage passkeys" aria-label="Manage passkeys"><svg class="i"><use href="#i-fingerprint"/></svg><span class="lbl">Passkeys</span></button>
       <button id="btnTheme" title="Switch theme" aria-label="Switch theme"><svg class="i t-sun"><use href="#i-sun"/></svg><svg class="i t-moon"><use href="#i-moon"/></svg><span class="lbl">Theme</span></button>
       <button id="btnLogout" title="Sign out" aria-label="Sign out"><svg class="i"><use href="#i-logout"/></svg><span class="lbl">Sign out</span></button>
     </nav>
@@ -329,7 +395,7 @@ h1,h2,h3,p{margin:0}
 
   <main class="main">
     <div class="addbar">
-      <div class="field"><input type="text" class="inp" id="newTopic" placeholder="What’s on today’s list?" enterkeyhint="done" autocomplete="off"></div>
+      <div class="field"><input type="text" class="inp" id="newTopic" placeholder="What's on today's list?" enterkeyhint="done" autocomplete="off"></div>
       <button class="btn" id="addTopic" aria-label="Add topic"><svg class="i"><use href="#i-plus"/></svg><span class="lbl">Add topic</span></button>
     </div>
     <div class="list" id="list"></div>
@@ -344,17 +410,38 @@ h1,h2,h3,p{margin:0}
   </div>
 </div>
 
+<!-- ============ PASSKEY MANAGER ============ -->
+<div id="pkModal" class="modal" role="dialog" aria-modal="true" aria-label="Manage Passkeys">
+  <div class="sheet" style="max-width:480px;width:100%;height:auto;max-height:88dvh;border-radius:26px;margin:auto;border:1px solid var(--line)">
+    <header>
+      <svg class="i" style="color:var(--focus)"><use href="#i-fingerprint"/></svg>
+      <h2>Passkeys</h2>
+      <button class="ico" id="pkClose" aria-label="Close"><svg class="i"><use href="#i-x"/></svg></button>
+    </header>
+    <div id="pkBody" style="padding:20px;overflow-y:auto">
+      <h3>Your registered passkeys</h3>
+      <p class="sub">Passkeys let you sign in with Face ID, fingerprint or PIN — no password needed.</p>
+      <div id="pkList" class="pk-list"></div>
+      <button class="btn" id="pkAddBtn" style="width:100%;margin-top:16px">
+        <svg class="i"><use href="#i-plus"/></svg>Add a passkey for this device
+      </button>
+      <div id="pkErr" style="color:var(--danger);font-size:.88rem;margin-top:10px;min-height:18px;font-weight:500"></div>
+    </div>
+  </div>
+</div>
+
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script>
+// ─────────────────────────────────────────────────────────────────────────────
+//  Utilities
+// ─────────────────────────────────────────────────────────────────────────────
 const $ = (id) => document.getElementById(id);
 const uid = () => Math.random().toString(36).slice(2, 10);
 const todayStr = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); };
 const esc = (s) => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const clone = (o) => JSON.parse(JSON.stringify(o));
 const ic = (n) => `<svg class="i" aria-hidden="true"><use href="#i-${n}"/></svg>`;
-// Count real tasks only: a topic that has sub-topics is a heading (its sub-topics are the tasks);
-// a topic with no sub-topics is itself one task.
 const stats = (tp) => tp.reduce((c, t) => {
   if (t.subs.length) { c.all += t.subs.length; c.done += t.subs.filter(s => s.done).length; }
   else { c.all += 1; c.done += t.done ? 1 : 0; }
@@ -375,7 +462,65 @@ async function api(path, opts) {
   return body;
 }
 
-/* ---------------- Theme ---------------- */
+// ─────────────────────────────────────────────────────────────────────────────
+//  WebAuthn helpers (base64url ↔ ArrayBuffer)
+// ─────────────────────────────────────────────────────────────────────────────
+function b64uToBuffer(b64) {
+  const pad = b64.replace(/-/g,'+').replace(/_/g,'/').padEnd(b64.length + (4 - b64.length % 4) % 4, '=');
+  return Uint8Array.from(atob(pad), c => c.charCodeAt(0)).buffer;
+}
+function bufferToB64u(buf) {
+  return btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+}
+
+// Recursively convert all ArrayBuffer / BufferSource fields to base64url strings
+// (needed when sending PublicKeyCredential back to the server as JSON)
+function credentialToJSON(cred) {
+  if (cred instanceof ArrayBuffer || ArrayBuffer.isView(cred)) return bufferToB64u(cred);
+  if (Array.isArray(cred)) return cred.map(credentialToJSON);
+  if (cred && typeof cred === 'object') {
+    const out = {};
+    for (const k of Object.keys(cred)) {
+      try { out[k] = credentialToJSON(cred[k]); } catch (_) { out[k] = cred[k]; }
+    }
+    // Preserve non-enumerable getters on AuthenticatorResponse
+    for (const k of ['clientDataJSON','authenticatorData','signature','userHandle','attestationObject','transports']) {
+      if (k in cred && !(k in out)) {
+        try {
+          const v = cred[k];
+          out[k] = (v instanceof ArrayBuffer || ArrayBuffer.isView(v)) ? bufferToB64u(v)
+                 : typeof v === 'function' ? credentialToJSON(v.call(cred))
+                 : v;
+        } catch (_) {}
+      }
+    }
+    if (typeof cred.getTransports === 'function') out.transports = cred.getTransports();
+    if (typeof cred.getClientExtensionResults === 'function') out.clientExtensionResults = cred.getClientExtensionResults();
+    return out;
+  }
+  return cred;
+}
+
+// Parse server options: convert base64url challenge & allowCredentials ids to ArrayBuffer
+function prepareGetOptions(opts) {
+  const o = { ...opts };
+  if (o.challenge) o.challenge = b64uToBuffer(o.challenge);
+  if (o.allowCredentials) o.allowCredentials = o.allowCredentials.map(c => ({ ...c, id: b64uToBuffer(c.id) }));
+  return o;
+}
+function prepareCreateOptions(opts) {
+  const o = { ...opts };
+  if (o.challenge) o.challenge = b64uToBuffer(o.challenge);
+  if (o.user && o.user.id) o.user = { ...o.user, id: b64uToBuffer(o.user.id) };
+  if (o.excludeCredentials) o.excludeCredentials = o.excludeCredentials.map(c => ({ ...c, id: b64uToBuffer(c.id) }));
+  return o;
+}
+
+const passkeySupported = () => window.PublicKeyCredential !== undefined && typeof navigator.credentials?.create === 'function';
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Theme
+// ─────────────────────────────────────────────────────────────────────────────
 $('btnTheme').onclick = () => {
   const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
   document.documentElement.dataset.theme = next;
@@ -384,39 +529,248 @@ $('btnTheme').onclick = () => {
 };
 document.querySelector('meta[name=theme-color]').content = document.documentElement.dataset.theme === 'light' ? '#fbf6f0' : '#0d0e1c';
 
-/* ---------------- Auth screen ---------------- */
-let mode = 'login';
+// ─────────────────────────────────────────────────────────────────────────────
+//  Auth screen state
+// ─────────────────────────────────────────────────────────────────────────────
+let authMode = 'login'; // 'login' | 'register'
+let otpEmail = '';
+
+function setAuthErr(msg) { $('authErr').textContent = msg || ''; }
+
+function showPwStep() {
+  $('pwStep').style.display = '';
+  $('otpStep').classList.remove('show');
+  setAuthErr('');
+}
+function showOtpStep(email) {
+  otpEmail = email;
+  $('otpEmailLabel').textContent = email;
+  $('otpCode').value = '';
+  $('pwStep').style.display = 'none';
+  $('otpStep').classList.add('show');
+  setAuthErr('');
+  setTimeout(() => $('otpCode').focus(), 80);
+}
+
 function renderAuthMode() {
-  const login = mode === 'login';
-  $('tabLogin').classList.toggle('on', login); $('tabReg').classList.toggle('on', !login);
-  $('tabLogin').setAttribute('aria-selected', login); $('tabReg').setAttribute('aria-selected', !login);
+  const login = authMode === 'login';
+  $('tabLogin').classList.toggle('on', login);
+  $('tabReg').classList.toggle('on', !login);
+  $('tabLogin').setAttribute('aria-selected', login);
+  $('tabReg').setAttribute('aria-selected', !login);
   $('authBtn').textContent = login ? 'Sign in' : 'Create account';
   $('formTitle').textContent = login ? 'Welcome back' : 'Start your flow';
   $('formSub').textContent = login ? 'Pick up right where you left off.' : 'Free, private and takes ten seconds.';
   $('authPassword').autocomplete = login ? 'current-password' : 'new-password';
-  $('authErr').textContent = '';
+  $('authFine').textContent = 'Passwords are stored as a one-way hash. Nobody can read yours.';
+
+  // Hide passkey/OTP buttons on register (user must set up passkey after login)
+  const showAlts = login;
+  $('passkeyBtn').style.display = showAlts ? '' : 'none';
+  $('otpTriggerBtn').style.display = showAlts ? '' : 'none';
+  document.querySelector('.divider').style.display = showAlts ? '' : 'none';
+
+  // Hide passkey button if browser doesn't support it
+  if (!passkeySupported()) $('passkeyBtn').style.display = 'none';
+
+  setAuthErr('');
+  showPwStep();
 }
-$('tabLogin').onclick = () => { mode = 'login'; renderAuthMode(); };
-$('tabReg').onclick = () => { mode = 'register'; renderAuthMode(); };
+
+$('tabLogin').onclick = () => { authMode = 'login'; renderAuthMode(); };
+$('tabReg').onclick  = () => { authMode = 'register'; renderAuthMode(); };
+
 $('eyeBtn').onclick = () => {
   const p = $('authPassword'); const show = p.type === 'password';
   p.type = show ? 'text' : 'password';
   $('eyeBtn').setAttribute('aria-label', show ? 'Hide password' : 'Show password');
 };
+
+// Password login / register
 $('authBtn').onclick = async () => {
-  const email = $('authEmail').value.trim(), password = $('authPassword').value;
-  const btn = $('authBtn'); $('authErr').textContent = '';
-  btn.disabled = true; btn.textContent = 'Please wait…';
+  const email = $('authEmail').value.trim();
+  const password = $('authPassword').value;
+  const btn = $('authBtn');
+  setAuthErr('');
+  btn.disabled = true;
+  btn.textContent = 'Please wait…';
   try {
-    await api(mode === 'login' ? '/login' : '/register', { method: 'POST', body: JSON.stringify({ email, password }) });
+    await api(authMode === 'login' ? '/login' : '/register', {
+      method: 'POST', body: JSON.stringify({ email, password })
+    });
     $('authPassword').value = '';
     await boot();
-  } catch (e) { $('authErr').textContent = e.message; }
-  btn.disabled = false; renderAuthMode();
+  } catch (e) { setAuthErr(e.message); }
+  btn.disabled = false;
+  btn.textContent = authMode === 'login' ? 'Sign in' : 'Create account';
 };
-['authEmail', 'authPassword'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') $('authBtn').click(); }));
+['authEmail','authPassword'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') $('authBtn').click(); }));
 
-/* ---------------- Todo logic (same behaviour as the desktop app) ---------------- */
+// ── Passkey login ──────────────────────────────────────────────────────────
+$('passkeyBtn').onclick = async () => {
+  const email = $('authEmail').value.trim();
+  if (!email) { setAuthErr('Enter your email first.'); $('authEmail').focus(); return; }
+  setAuthErr('');
+  $('passkeyBtn').disabled = true;
+  $('passkeyBtn').innerHTML = ic('fingerprint') + ' Waiting for biometric…';
+  try {
+    // 1. Get assertion options from server
+    const opts = await api('/passkey/login/begin', { method: 'POST', body: JSON.stringify({ email }) });
+    const { userId, ...assertionOpts } = opts;
+
+    // 2. Trigger OS biometric / PIN prompt
+    const credential = await navigator.credentials.get({
+      publicKey: prepareGetOptions(assertionOpts)
+    });
+
+    // 3. Send assertion to server
+    await api('/passkey/login/complete', {
+      method: 'POST',
+      body: JSON.stringify({ userId, credential: credentialToJSON(credential) })
+    });
+
+    await boot();
+  } catch (e) {
+    if (e.name === 'NotAllowedError') {
+      setAuthErr('Passkey prompt was cancelled or timed out.');
+    } else {
+      setAuthErr(e.message || 'Passkey sign-in failed.');
+    }
+  }
+  $('passkeyBtn').disabled = false;
+  $('passkeyBtn').innerHTML = ic('fingerprint') + ' Sign in with Passkey';
+};
+
+// ── OTP login ──────────────────────────────────────────────────────────────
+$('otpTriggerBtn').onclick = async () => {
+  const email = $('authEmail').value.trim();
+  if (!email) { setAuthErr('Enter your email first.'); $('authEmail').focus(); return; }
+  setAuthErr('');
+  $('otpTriggerBtn').disabled = true;
+  $('otpTriggerBtn').textContent = 'Sending…';
+  try {
+    await api('/otp/send', { method: 'POST', body: JSON.stringify({ email }) });
+    showOtpStep(email);
+    toast('Code sent! Check your inbox.');
+  } catch (e) { setAuthErr(e.message || 'Could not send code.'); }
+  $('otpTriggerBtn').disabled = false;
+  $('otpTriggerBtn').innerHTML = ic('mail') + ' Sign in with Email Code';
+};
+
+$('otpBtn').onclick = async () => {
+  const code = $('otpCode').value.trim().replace(/\s/g,'');
+  if (code.length !== 6) { setAuthErr('Enter the 6-digit code.'); return; }
+  setAuthErr('');
+  $('otpBtn').disabled = true;
+  $('otpBtn').textContent = 'Verifying…';
+  try {
+    await api('/otp/verify', { method: 'POST', body: JSON.stringify({ email: otpEmail, code }) });
+    await boot();
+  } catch (e) { setAuthErr(e.message || 'Invalid or expired code.'); }
+  $('otpBtn').disabled = false;
+  $('otpBtn').textContent = 'Verify Code';
+};
+
+$('otpCode').addEventListener('keydown', e => { if (e.key === 'Enter') $('otpBtn').click(); });
+$('otpBack').onclick = showPwStep;
+$('otpResend').onclick = () => $('otpTriggerBtn').click();
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Passkey Manager (in-app modal)
+// ─────────────────────────────────────────────────────────────────────────────
+async function openPasskeyManager() {
+  $('pkErr').textContent = '';
+  $('pkModal').classList.add('show');
+  document.body.classList.add('lock');
+  await refreshPasskeyList();
+}
+function closePasskeyManager() {
+  $('pkModal').classList.remove('show');
+  document.body.classList.remove('lock');
+}
+
+async function refreshPasskeyList() {
+  $('pkList').innerHTML = '<div style="color:var(--muted);font-size:.88rem">Loading…</div>';
+  try {
+    const { passkeys } = await api('/passkeys');
+    if (!passkeys.length) {
+      $('pkList').innerHTML = '<div style="color:var(--muted);font-size:.88rem">No passkeys yet. Add one below.</div>';
+      return;
+    }
+    $('pkList').innerHTML = passkeys.map(pk => `
+      <div class="pk-item" data-pk-id="${esc(pk.id)}">
+        <svg class="i" style="color:var(--focus);flex-shrink:0"><use href="#i-fingerprint"/></svg>
+        <div style="flex:1;min-width:0">
+          <div class="pk-name">${esc(pk.name || 'Passkey')}</div>
+          <div class="pk-meta">${pk.backed_up ? '☁️ Synced' : '📱 This device'} · Added ${new Date(pk.created_at).toLocaleDateString()}</div>
+        </div>
+        <button class="pk-del" data-pk-id="${esc(pk.id)}" aria-label="Remove passkey">Remove</button>
+      </div>
+    `).join('');
+  } catch (e) {
+    $('pkList').innerHTML = '<div style="color:var(--danger);font-size:.88rem">Could not load passkeys.</div>';
+  }
+}
+
+$('pkList').addEventListener('click', async (e) => {
+  const btn = e.target.closest('.pk-del'); if (!btn) return;
+  if (!confirm('Remove this passkey? You can add it again later.')) return;
+  btn.disabled = true; btn.textContent = 'Removing…';
+  try {
+    await api('/passkeys/' + encodeURIComponent(btn.dataset.pkId), { method: 'DELETE' });
+    toast('Passkey removed.');
+    await refreshPasskeyList();
+  } catch (e) {
+    $('pkErr').textContent = e.message || 'Could not remove passkey.';
+    btn.disabled = false; btn.textContent = 'Remove';
+  }
+});
+
+$('pkAddBtn').onclick = async () => {
+  $('pkErr').textContent = '';
+  if (!passkeySupported()) {
+    $('pkErr').textContent = 'This browser does not support passkeys.';
+    return;
+  }
+  const name = prompt('Name this passkey (e.g. "iPhone 16" or "Work laptop"):');
+  if (name === null) return; // cancelled
+  $('pkAddBtn').disabled = true;
+  $('pkAddBtn').innerHTML = ic('fingerprint') + ' Waiting for biometric…';
+  try {
+    // 1. Get creation options
+    const opts = await api('/passkey/register/begin', { method: 'POST' });
+
+    // 2. Trigger OS biometric / PIN
+    const credential = await navigator.credentials.create({
+      publicKey: prepareCreateOptions(opts)
+    });
+
+    // 3. Send attestation to server
+    await api('/passkey/register/complete', {
+      method: 'POST',
+      body: JSON.stringify({ credential: credentialToJSON(credential), name: name || '' })
+    });
+
+    toast('Passkey added! You can now sign in with biometrics.');
+    await refreshPasskeyList();
+  } catch (e) {
+    if (e.name === 'NotAllowedError') {
+      $('pkErr').textContent = 'Passkey setup was cancelled.';
+    } else {
+      $('pkErr').textContent = e.message || 'Could not add passkey.';
+    }
+  }
+  $('pkAddBtn').disabled = false;
+  $('pkAddBtn').innerHTML = ic('plus') + ' Add a passkey for this device';
+};
+
+$('btnPasskeys').onclick = openPasskeyManager;
+$('pkClose').onclick = closePasskeyManager;
+$('pkModal').addEventListener('click', e => { if (e.target === $('pkModal')) closePasskeyManager(); });
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Todo logic (unchanged from original)
+// ─────────────────────────────────────────────────────────────────────────────
 let data = null;
 
 function organize() {
@@ -445,7 +799,6 @@ function persist() {
     api('/data', { method: 'PUT', body: JSON.stringify(data) }).catch(() => toast('Could not save — check your connection'));
   }, 300);
 }
-// Don't lose a pending edit if the tab is closed or backgrounded
 function flush() {
   if (!saveTimer || !data) return;
   clearTimeout(saveTimer); saveTimer = null;
@@ -513,7 +866,7 @@ function editInline(span, apply) {
   span.replaceWith(inp); inp.focus(); inp.select();
   let finished = false;
   const finish = (ok) => {
-    if (finished) return; finished = true;       // Enter/Escape must not be re-run by the blur that follows
+    if (finished) return; finished = true;
     if (ok && inp.value.trim()) apply(inp.value.trim());
     persist(); render();
   };
@@ -543,7 +896,7 @@ $('list').addEventListener('keydown', (e) => {
     topicOf(el).subs.push({ id: uid(), text: el.value.trim(), done: false });
     const id = el.closest('.topic').dataset.id;
     persist(); render();
-    const again = document.querySelector(`.topic[data-id="${id}"] .addsub input`); if (again) again.focus(); // keep typing sub-topics
+    const again = document.querySelector(`.topic[data-id="${id}"] .addsub input`); if (again) again.focus();
   } else if ((act === 'editTopic' || act === 'editSub') && e.key === 'Enter') { el.click(); }
 });
 
@@ -564,7 +917,9 @@ $('btnClear').onclick = () => {
 $('btnBackup').onclick = () => { window.location.href = '/api/export'; toast('Preparing your backup download…'); };
 $('btnLogout').onclick = async () => { flush(); await api('/logout', { method: 'POST' }); location.reload(); };
 
-/* ---------------- History viewer ---------------- */
+// ─────────────────────────────────────────────────────────────────────────────
+//  History viewer
+// ─────────────────────────────────────────────────────────────────────────────
 const fmt = (iso, o) => parseDay(iso).toLocaleDateString(undefined, o);
 function showHistory() {
   $('hist').classList.add('show'); document.body.classList.add('lock');
@@ -593,10 +948,17 @@ function pickDate(d) {
 $('btnHist').onclick = showHistory;
 $('histClose').onclick = hideHistory;
 $('hist').addEventListener('click', e => { if (e.target === $('hist')) hideHistory(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('hist').classList.contains('show')) hideHistory(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    if ($('pkModal').classList.contains('show')) { closePasskeyManager(); return; }
+    if ($('hist').classList.contains('show')) { hideHistory(); }
+  }
+});
 $('dates').addEventListener('click', e => { const b = e.target.closest('[data-d]'); if (b) pickDate(b.dataset.d); });
 
-/* ---------------- Boot ---------------- */
+// ─────────────────────────────────────────────────────────────────────────────
+//  Boot
+// ─────────────────────────────────────────────────────────────────────────────
 async function boot() {
   try {
     const me = await api('/me');
@@ -607,7 +969,7 @@ async function boot() {
     if (rolloverIfNeeded()) persist();
     render();
     $('list').classList.add('enter'); setTimeout(() => $('list').classList.remove('enter'), 900);
-    if (!boot.timer) boot.timer = setInterval(() => { if (data && rolloverIfNeeded()) { persist(); render(); } }, 60000); // midnight watcher
+    if (!boot.timer) boot.timer = setInterval(() => { if (data && rolloverIfNeeded()) { persist(); render(); } }, 60000);
   } catch (e) {
     $('app').classList.add('hidden'); $('auth').classList.remove('hidden');
     renderAuthMode();
