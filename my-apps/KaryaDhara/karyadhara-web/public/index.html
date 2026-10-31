@@ -348,7 +348,7 @@ h1,h2,h3,p{margin:0}
         </div>
       </div>
       <div class="auth-methods">
-        <button class="btn" id="authBtn">Log in</button>
+        <button class="btn" id="authBtn">Log in with Password</button>
         <div class="divider">or</div>
         <button class="btn ghost" id="passkeyBtn"><svg class="i"><use href="#i-fingerprint"/></svg>Log in with Passkey</button>
         <button class="btn ghost" id="otpTriggerBtn"><svg class="i"><use href="#i-mail"/></svg>Log in with Email Code</button>
@@ -568,7 +568,7 @@ function renderAuthMode() {
   $('tabReg').classList.toggle('on', !login);
   $('tabLogin').setAttribute('aria-selected', login);
   $('tabReg').setAttribute('aria-selected', !login);
-  $('authBtn').textContent = login ? 'Log in' : 'Create account';
+  $('authBtn').textContent = login ? 'Log in with Password' : 'Sign up';
   $('formTitle').textContent = login ? 'Welcome back' : 'Start your flow';
   $('formSub').textContent = login ? 'Pick up right where you left off.' : 'Free, private and takes ten seconds.';
   $('authPassword').autocomplete = login ? 'current-password' : 'new-password';
@@ -622,7 +622,7 @@ $('authBtn').onclick = async () => {
     if (authMode === 'login') toast(e.message || 'Login failed.', 'error');
   }
   btn.disabled = false;
-  btn.textContent = authMode === 'login' ? 'Log in' : 'Create account';
+  btn.textContent = authMode === 'login' ? 'Log in with Password' : 'Sign up';
 };
 ['authIdentifier','authPassword'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') $('authBtn').click(); }));
 

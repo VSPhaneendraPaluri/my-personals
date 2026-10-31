@@ -17,10 +17,13 @@ app.use(helmet({ contentSecurityPolicy: false }));
 app.use(express.json({ limit: '256kb' }));
 app.use(cookieParser());
 
+// Order matters: dataRoutes does router.use(requireAuth), which would 401 any
+// request that reaches it first — including the public /otp/* and
+// /passkey/login/* endpoints. Mount those before it.
 app.use('/api', authRoutes);
-app.use('/api', dataRoutes);
-app.use('/api', passkeyRoutes);
 app.use('/api', otpRoutes);
+app.use('/api', passkeyRoutes);
+app.use('/api', dataRoutes);
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
