@@ -2,7 +2,7 @@
   "name": "karyadhara-web",
   "version": "1.0.0",
   "private": true,
-  "description": "Karyadhara — multi-user daily to-do web app — each user's to-dos and history stay private to their own account.",
+  "description": "Karyadhara — daily to-do app with parent/child monitoring, family task assignment, and daily overdue digests.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

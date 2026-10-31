@@ -53,7 +53,8 @@ async function seedUserData(userId) {
 // ═══════════════════════════════════════════════════════════════════════════
 router.post('/register', authLimiter, otpSendLimiter, async (req, res) => {
   const raw = req.body.identifier ?? req.body.email ?? req.body.phone;
-  const password = String(req.body.password || '');
+  const password    = String(req.body.password || '');
+  const dateOfBirth = req.body.dateOfBirth || null; // ISO date string, only for child accounts
   const parsed = parseIdentifier(raw);
 
   if (!parsed) return res.status(400).json({ error: identifierHint() });
@@ -79,10 +80,12 @@ router.post('/register', authLimiter, otpSendLimiter, async (req, res) => {
       const hash = await bcrypt.hash(password, 12);
       await pool.query(`UPDATE users SET password_hash = $1 WHERE id = $2`, [hash, userId]);
     } else {
-      const hash = await bcrypt.hash(password, 12);
+      const hash       = await bcrypt.hash(password, 12);
+      const roleValue  = dateOfBirth ? 'child' : 'standalone';
       const result = await pool.query(
-        `INSERT INTO users (${column}, password_hash) VALUES ($1, $2) RETURNING id`,
-        [parsed.value, hash]
+        `INSERT INTO users (${column}, password_hash, role, date_of_birth)
+         VALUES ($1, $2, $3, $4) RETURNING id`,
+        [parsed.value, hash, roleValue, dateOfBirth || null]
       );
       userId = result.rows[0].id;
       await seedUserData(userId);
@@ -239,10 +242,13 @@ router.post('/logout', (req, res) => {
 });
 
 router.get('/me', requireAuth, async (req, res) => {
-  const result = await pool.query('SELECT email, phone FROM users WHERE id = $1', [req.userId]);
+  const result = await pool.query(
+    'SELECT id, email, phone, role, date_of_birth FROM users WHERE id = $1',
+    [req.userId]
+  );
   if (!result.rows.length) return res.status(401).json({ error: 'Not signed in.' });
-  const { email, phone } = result.rows[0];
-  res.json({ email, phone, identifier: email || phone });
+  const { id, email, phone, role, date_of_birth } = result.rows[0];
+  res.json({ id, email, phone, role, dateOfBirth: date_of_birth, identifier: email || phone });
 });
 
 module.exports = router;
