@@ -312,6 +312,8 @@ h1,h2,h3,p{margin:0}
   <symbol id="i-mail" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></symbol>
   <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="5"/><path d="M21 3l-9.4 9.4M16 8l2 2"/></symbol>
   <symbol id="i-family" viewBox="0 0 24 24"><circle cx="8" cy="8" r="3.2"/><circle cx="17" cy="6.5" r="2.4"/><path d="M3 21v-2.4A4.6 4.6 0 017.6 14h.8A4.6 4.6 0 0113 18.6V21"/><path d="M15.2 13.5h.3a3.9 3.9 0 013.9 3.9V21"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 3.6L2 20h20L13.7 3.6a2 2 0 00-3.4 0z"/><path d="M12 9v5M12 17v.5"/></symbol>
 </svg>
 
 <!-- ============ AUTH ============ -->
@@ -397,6 +399,7 @@ h1,h2,h3,p{margin:0}
       <button id="btnPasskeys" title="Manage passkeys" aria-label="Manage passkeys"><svg class="i"><use href="#i-fingerprint"/></svg><span class="lbl">Passkeys</span></button>
       <button id="btnTheme" title="Switch theme" aria-label="Switch theme"><svg class="i t-sun"><use href="#i-sun"/></svg><svg class="i t-moon"><use href="#i-moon"/></svg><span class="lbl">Theme</span></button>
       <button id="btnFamily" title="Family" aria-label="Family" style="display:none"><svg class="i"><use href="#i-family"/></svg><span class="lbl">Family</span></button>
+      <button id="btnDeleteAccount" title="Delete account" aria-label="Delete account" style="color:var(--danger)"><svg class="i"><use href="#i-trash"/></svg><span class="lbl">Delete account</span></button>
       <button id="btnLogout" title="Sign out" aria-label="Sign out"><svg class="i"><use href="#i-logout"/></svg><span class="lbl">Sign out</span></button>
     </nav>
     <section class="panel summary" aria-live="polite">
@@ -455,6 +458,36 @@ h1,h2,h3,p{margin:0}
         <svg class="i"><use href="#i-plus"/></svg>Add a passkey for this device
       </button>
       <div id="pkErr" style="color:var(--danger);font-size:.88rem;margin-top:10px;min-height:18px;font-weight:500"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ DELETE ACCOUNT MODAL ============ -->
+<div id="deleteModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
+  <div class="sheet" style="width:min(440px,94vw);height:auto;border-radius:22px;border:1px solid color-mix(in srgb,var(--danger) 38%,var(--line));box-shadow:0 30px 80px rgba(0,0,0,.55);padding:0;overflow:visible">
+    <!-- Header -->
+    <div style="padding:24px 24px 0;display:flex;align-items:flex-start;gap:14px">
+      <span id="deleteModalIcon" style="flex-shrink:0;width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--danger) 14%,transparent)">
+        <svg style="width:22px;height:22px;stroke:var(--danger);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><use href="#i-alert"/></svg>
+      </span>
+      <div>
+        <h2 id="deleteModalTitle" style="margin:0 0 4px;font-size:1.05rem;font-weight:800;line-height:1.2">Delete account</h2>
+        <p id="deleteModalSub" style="margin:0;font-size:.84rem;color:var(--muted);line-height:1.4"></p>
+      </div>
+    </div>
+    <!-- Body -->
+    <div id="deleteModalBody" style="padding:18px 24px 0;font-size:.88rem;line-height:1.55;color:var(--text)"></div>
+    <!-- Type-to-confirm (parents only) -->
+    <div id="deleteConfirmWrap" style="display:none;padding:14px 24px 0">
+      <label for="deleteConfirmInput" style="font-size:.82rem;font-weight:600;color:var(--muted);display:block;margin-bottom:6px">Type <strong style="color:var(--danger);letter-spacing:.04em">DELETE</strong> to confirm</label>
+      <div class="field"><input type="text" id="deleteConfirmInput" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="DELETE" style="font-weight:700;letter-spacing:.06em"></div>
+    </div>
+    <!-- Error -->
+    <div id="deleteModalErr" style="min-height:18px;padding:6px 24px 0;font-size:.82rem;font-weight:600;color:var(--danger)"></div>
+    <!-- Actions -->
+    <div style="padding:18px 24px 24px;display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn ghost" id="deleteCancelBtn" style="min-width:90px">Cancel</button>
+      <button class="btn" id="deleteConfirmBtn" style="min-width:130px;background:var(--danger);border-color:var(--danger);opacity:.45;cursor:not-allowed" disabled>Delete account</button>
     </div>
   </div>
 </div>
@@ -1082,6 +1115,133 @@ document.addEventListener('keydown', e => {
   }
 });
 $('dates').addEventListener('click', e => { const b = e.target.closest('[data-d]'); if (b) pickDate(b.dataset.d); });
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Delete Account
+// ─────────────────────────────────────────────────────────────────────────────
+let _deleteRequiresTyping = false; // true for parent-with-children flows
+
+function openDeleteModal() {
+  const role     = currentUserRole || 'standalone';
+  const isParent = role === 'parent';
+  const isChild  = role === 'child';
+
+  $('deleteModalErr').textContent = '';
+  $('deleteConfirmInput').value   = '';
+  _deleteRequiresTyping = false;
+
+  // Reset confirm button state.
+  const confirmBtn = $('deleteConfirmBtn');
+  confirmBtn.disabled = true;
+  confirmBtn.style.opacity = '.45';
+  confirmBtn.style.cursor  = 'not-allowed';
+
+  if (isParent && familyChildren.length > 0) {
+    // ── Parent with verified children ────────────────────────────────────────
+    _deleteRequiresTyping = true;
+
+    $('deleteModalSub').textContent = 'This will permanently delete your account and may remove your children\'s accounts.';
+
+    // Build the children impact list.
+    // We split into two categories based on what we know locally; the server
+    // does the authoritative check, but we give the user a heads-up.
+    const childItems = familyChildren.map(c =>
+      `<li style="padding:5px 0;border-bottom:1px solid var(--line)">`+
+      `<span style="font-weight:600">${esc(c.email)}</span>`+
+      `<span style="display:block;font-size:.78rem;color:var(--muted);margin-top:1px">`+
+      `Their account will be <strong style="color:var(--danger)">deleted</strong> if you are their only parent</span></li>`
+    ).join('');
+
+    $('deleteModalBody').innerHTML =
+      `<div style="background:color-mix(in srgb,var(--danger) 8%,transparent);border:1px solid color-mix(in srgb,var(--danger) 28%,transparent);border-radius:12px;padding:14px 16px;margin-bottom:14px">`+
+      `<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;font-weight:700;color:var(--danger)">`+
+      `<svg style="width:16px;height:16px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><use href="#i-alert"/></svg>`+
+      `${familyChildren.length} linked child account${familyChildren.length !== 1 ? 's' : ''} will be affected:`+
+      `</div><ul style="margin:0;padding-left:4px;list-style:none">${childItems}</ul></div>`+
+      `<p style="margin:0;color:var(--muted)">Children who have another linked parent will keep their account. Children with only you as parent will be permanently deleted. <strong>This cannot be undone.</strong></p>`;
+
+    $('deleteConfirmWrap').style.display = '';
+
+    // Enable confirm only when user types "DELETE" exactly.
+    $('deleteConfirmInput').oninput = () => {
+      const match = $('deleteConfirmInput').value === 'DELETE';
+      confirmBtn.disabled      = !match;
+      confirmBtn.style.opacity = match ? '1' : '.45';
+      confirmBtn.style.cursor  = match ? 'pointer' : 'not-allowed';
+      if ($('deleteModalErr').textContent) $('deleteModalErr').textContent = '';
+    };
+
+  } else if (isChild) {
+    // ── Child account ─────────────────────────────────────────────────────────
+    $('deleteModalSub').textContent = 'This will permanently delete your account.';
+    $('deleteModalBody').innerHTML =
+      `<p style="margin:0 0 10px">Your tasks, history and all account data will be erased.</p>`+
+      `<p style="margin:0;color:var(--muted)">Your linked parents will be notified that your account has been deleted. <strong>This cannot be undone.</strong></p>`;
+    $('deleteConfirmWrap').style.display = 'none';
+    confirmBtn.disabled      = false;
+    confirmBtn.style.opacity = '1';
+    confirmBtn.style.cursor  = 'pointer';
+
+  } else {
+    // ── Standalone account ────────────────────────────────────────────────────
+    $('deleteModalSub').textContent = 'This will permanently delete your account.';
+    $('deleteModalBody').innerHTML =
+      `<p style="margin:0 0 10px">All your tasks, history, passkeys and account data will be erased.</p>`+
+      `<p style="margin:0;color:var(--muted)"><strong>This cannot be undone.</strong></p>`;
+    $('deleteConfirmWrap').style.display = 'none';
+    confirmBtn.disabled      = false;
+    confirmBtn.style.opacity = '1';
+    confirmBtn.style.cursor  = 'pointer';
+  }
+
+  $('deleteModal').classList.add('show');
+  document.body.classList.add('lock');
+
+  // Focus the type-confirm input or the cancel button for keyboard users.
+  setTimeout(() => {
+    if (_deleteRequiresTyping) $('deleteConfirmInput').focus();
+    else $('deleteCancelBtn').focus();
+  }, 80);
+}
+
+function closeDeleteModal() {
+  $('deleteModal').classList.remove('show');
+  document.body.classList.remove('lock');
+  $('deleteConfirmInput').value   = '';
+  $('deleteModalErr').textContent = '';
+}
+
+$('btnDeleteAccount').onclick = openDeleteModal;
+$('deleteCancelBtn').onclick  = closeDeleteModal;
+$('deleteModal').addEventListener('click', e => { if (e.target === $('deleteModal')) closeDeleteModal(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && $('deleteModal').classList.contains('show')) closeDeleteModal();
+});
+
+$('deleteConfirmBtn').onclick = async () => {
+  if (_deleteRequiresTyping && $('deleteConfirmInput').value !== 'DELETE') {
+    $('deleteModalErr').textContent = 'Please type DELETE exactly to confirm.';
+    $('deleteConfirmInput').focus();
+    return;
+  }
+
+  const btn = $('deleteConfirmBtn');
+  const origText = btn.textContent;
+  btn.disabled    = true;
+  btn.textContent = 'Deleting…';
+  $('deleteModalErr').textContent = '';
+
+  try {
+    flush(); // save any unsaved task state before the account disappears
+    await api('/account', { method: 'DELETE' });
+    // Server has cleared the cookie; reload to show the auth screen.
+    location.reload();
+  } catch (e) {
+    $('deleteModalErr').textContent = e.message || 'Could not delete account. Please try again.';
+    btn.disabled    = false;
+    btn.textContent = origText;
+  }
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Sign-up account-type step (Step 0)

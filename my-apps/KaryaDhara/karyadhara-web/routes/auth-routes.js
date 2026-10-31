@@ -251,4 +251,187 @@ router.get('/me', requireAuth, async (req, res) => {
   res.json({ id, email, phone, role, dateOfBirth: date_of_birth, identifier: email || phone });
 });
 
+// ═══════════════════════════════════════════════════════════════════════════
+//  DELETE /api/account
+//  Permanently deletes the authenticated user's account.
+//
+//  Behaviour by role:
+//    standalone / child:
+//      – Deletes the user row.  CASCADE handles all dependent rows.
+//      – If child: notifies each linked parent by email.
+//
+//    parent:
+//      – Finds each verified child.
+//      – Children who have NO other verified parent after this deletion are
+//        "orphaned" → their accounts are deleted along with the parent's.
+//      – Children who have at least one other verified parent keep their
+//        accounts; the link to this parent is removed / revoked.
+//      – Emails every affected child and every co-parent before deleting.
+//
+//  DB cascade (ON DELETE CASCADE) already covers:
+//    user_data, otp_codes, passkey_credentials, parent_links,
+//    notification_prefs, passkey rows.
+// ═══════════════════════════════════════════════════════════════════════════
+router.delete('/account', requireAuth, async (req, res) => {
+  const userId = req.userId;
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    // 1. Fetch the requesting user.
+    const { rows: meRows } = await client.query(
+      'SELECT id, email, phone, role FROM users WHERE id = $1',
+      [userId]
+    );
+    if (!meRows.length) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Account not found.' });
+    }
+    const me = meRows[0];
+
+    // 2. If this user is a child, notify their parents before deletion.
+    if (me.role === 'child') {
+      const { rows: parents } = await client.query(
+        `SELECT u.email FROM parent_links pl
+         JOIN users u ON u.id = pl.parent_id
+         WHERE pl.child_id = $1 AND pl.status = 'verified' AND u.email IS NOT NULL`,
+        [userId]
+      );
+      for (const parent of parents) {
+        try {
+          await sendAccountDeletionEmail(parent.email, {
+            subject: `Karyadhara — child account deleted`,
+            body: `The child account ${me.email || me.phone} has been deleted by its owner. The monitoring link has ended.`,
+          });
+        } catch (_) { /* email failure must not block deletion */ }
+      }
+    }
+
+    // 3. If this user is a parent, handle their children.
+    if (me.role === 'parent') {
+      // Fetch all verified children.
+      const { rows: children } = await client.query(
+        `SELECT u.id, u.email, u.phone FROM parent_links pl
+         JOIN users u ON u.id = pl.child_id
+         WHERE pl.parent_id = $1 AND pl.status = 'verified'`,
+        [userId]
+      );
+
+      for (const child of children) {
+        // Count other verified parents for this child (excluding the one being deleted).
+        const { rows: otherParents } = await client.query(
+          `SELECT pl.parent_id, u.email AS parent_email
+           FROM parent_links pl
+           JOIN users u ON u.id = pl.parent_id
+           WHERE pl.child_id = $1 AND pl.parent_id != $2 AND pl.status = 'verified'`,
+          [child.id, userId]
+        );
+
+        if (otherParents.length === 0) {
+          // Orphaned child — delete their account (cascade handles everything).
+          await client.query('DELETE FROM users WHERE id = $1', [child.id]);
+          // Notify the child (best-effort — account is gone so they can't log in, but email is a courtesy).
+          const childContact = child.email || child.phone;
+          if (child.email) {
+            try {
+              await sendAccountDeletionEmail(child.email, {
+                subject: 'Karyadhara — your account has been removed',
+                body: `Your Karyadhara account (${childContact}) has been removed because your parent deleted their account and you had no other linked parent. If you want to continue using Karyadhara, you can create a new account at any time.`,
+              });
+            } catch (_) {}
+          }
+        } else {
+          // Child keeps their account — revoke only the link to the departing parent.
+          await client.query(
+            `UPDATE parent_links SET status = 'revoked'
+             WHERE parent_id = $1 AND child_id = $2`,
+            [userId, child.id]
+          );
+          // Also downgrade to 'standalone' if this was their only parent.
+          await client.query(
+            `UPDATE users SET role = 'standalone'
+             WHERE id = $1 AND (
+               SELECT COUNT(*) FROM parent_links
+               WHERE child_id = $1 AND status = 'verified' AND parent_id != $2
+             ) = 0`,
+            [child.id, userId]
+          );
+          // Notify the child that one parent left.
+          if (child.email) {
+            try {
+              await sendAccountDeletionEmail(child.email, {
+                subject: 'Karyadhara — a parent account was deleted',
+                body: `The Karyadhara account of ${me.email || me.phone} has been deleted. Your account is unaffected — you still have ${otherParents.length} other linked parent(s).`,
+              });
+            } catch (_) {}
+          }
+          // Notify remaining co-parents.
+          for (const op of otherParents) {
+            if (op.parent_email) {
+              try {
+                await sendAccountDeletionEmail(op.parent_email, {
+                  subject: 'Karyadhara — co-parent account deleted',
+                  body: `The Karyadhara account of ${me.email || me.phone} (a co-parent of ${child.email || child.phone}) has been deleted. The child's account is unaffected.`,
+                });
+              } catch (_) {}
+            }
+          }
+        }
+      }
+    }
+
+    // 4. Delete the requesting user's own account.
+    //    CASCADE removes: user_data, otp_codes, passkey_credentials,
+    //    parent_links (as parent), notification_prefs.
+    await client.query('DELETE FROM users WHERE id = $1', [userId]);
+
+    await client.query('COMMIT');
+
+    // 5. Clear the session cookie and respond.
+    clearAuthCookie(res);
+    res.json({ ok: true });
+  } catch (e) {
+    await client.query('ROLLBACK');
+    console.error('[delete-account]', e);
+    res.status(500).json({ error: 'Could not delete account. Please try again.' });
+  } finally {
+    client.release();
+  }
+});
+
+// Thin email helper local to this file (reuses Brevo / SMTP path from notify.js).
+const { sendOverdueDigestEmail: _unused, ...notifyExports } = require('../lib/notify');
+async function sendAccountDeletionEmail(toEmail, { subject, body }) {
+  const { sendFamilyLinkEmail: _f, sendOtpEmail: _o, sendOtpSms: _s, sendOverdueDigestEmail: _d, ...rest } = require('../lib/notify');
+  // notify.js doesn't export a generic sendMail, so we use Brevo/SMTP directly.
+  const useBrevo = !!process.env.BREVO_API_KEY;
+  const sender   = process.env.MAIL_FROM || process.env.SMTP_USER;
+  if (!sender) return; // silently skip if email is not configured
+
+  const html = `<div style="font-family:system-ui,sans-serif;max-width:520px;margin:0 auto;padding:32px 24px">
+    <h2 style="font-size:1.4rem;font-weight:800;margin:0 0 4px">Karyadhara</h2>
+    <p style="color:#6c6784;font-size:.85rem;margin:0 0 24px">कार्यधारा · a steady stream of work</p>
+    <p style="margin:0 0 16px">${body.replace(/\n/g, '<br>')}</p>
+  </div>`;
+
+  if (useBrevo) {
+    await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: { 'api-key': process.env.BREVO_API_KEY, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ sender: { name: 'Karyadhara', email: sender }, to: [{ email: toEmail }], subject, textContent: body, htmlContent: html }),
+      signal: AbortSignal.timeout(12_000),
+    });
+  } else if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+    const nodemailer = require('nodemailer');
+    const t = nodemailer.createTransport({
+      host: process.env.SMTP_HOST || 'smtp.gmail.com',
+      port: parseInt(process.env.SMTP_PORT || '587', 10),
+      secure: false, auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+      connectionTimeout: 10_000,
+    });
+    await t.sendMail({ from: `"Karyadhara" <${process.env.SMTP_USER}>`, to: toEmail, subject, text: body, html });
+  }
+}
+
 module.exports = router;
