@@ -34,7 +34,7 @@
   color-scheme:light;
   --bg:#fbf6f0; --bg2:#ffffff; --card:rgba(255,255,255,.82); --card-h:#ffffff;
   --line:rgba(45,30,80,.12); --text:#241d3b; --muted:#6c6784; --done:#a39fb8;
-  --shadow:0 12px 34px rgba(80,50,120,.13); --glow1:rgba(240,102,31,.17); --glow2:rgba(111,76,255,.14); --focus:#c2255c;
+  --shadow:0 12px 34px rgba(80,50,120,.13); --glow1:rgba(240,102,31,.17); --glow2:rgba(111,76,255,.14); --focus:#c2255c; --danger:#c4264b;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{-webkit-text-size-adjust:100%}
@@ -48,7 +48,7 @@ body.lock{overflow:hidden}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;touch-action:manipulation}
 input{font:inherit;color:inherit}
 h1,h2,h3,p{margin:0}
-.hidden{display:none!important}
+.hidden,[hidden]{display:none!important}
 :focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:8px}
 .i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
 .sprite{position:absolute;width:0;height:0;overflow:hidden}
@@ -136,20 +136,35 @@ h1,h2,h3,p{margin:0}
 /* ---------- app shell ---------- */
 .shell{max-width:1480px;margin:0 auto;min-height:100dvh;display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-content:start;
   padding:max(14px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) max(28px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));
-  animation:rise .5s both}
+  animation:fade .5s both}
 @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-.side{display:grid;grid-template-columns:1fr auto;grid-template-areas:"brand nav" "sum sum";gap:14px;align-items:center}
-.brand{grid-area:brand;display:flex;align-items:center;gap:10px;font-size:1.3rem;font-weight:800;letter-spacing:-.03em;min-width:0}
+.side{display:grid;gap:14px;align-content:start}
+.brand{display:flex;align-items:center;gap:10px;font-size:1.3rem;font-weight:800;letter-spacing:-.03em;min-width:0}
 .brand svg{width:38px;height:38px;flex-shrink:0;filter:drop-shadow(0 6px 12px rgba(224,53,124,.35))}
-.nav{grid-area:nav;display:flex;gap:4px}
-.nav button{display:flex;align-items:center;gap:12px;min-width:44px;min-height:44px;justify-content:center;border-radius:14px;color:var(--muted);font-weight:600;transition:background .15s,color .15s}
+
+/* avatar (initial in a gradient disc) */
+.av{display:grid;place-items:center;border-radius:50%;background:var(--grad);color:#fff;font-weight:800;line-height:1;flex-shrink:0;user-select:none}
+
+/* primary navigation — bottom tab bar on small screens, sidebar list on desktop */
+.nav button{position:relative;display:flex;align-items:center;color:var(--muted);font-weight:600;border-radius:14px;transition:background .15s,color .15s}
 .nav button:hover{background:var(--card-h);color:var(--text)}
-.nav .lbl{display:none}
-.t-sun{display:none}
-:root[data-theme=dark] .t-sun{display:block}
-:root[data-theme=dark] .t-moon{display:none}
-.who{display:none}
-.summary{grid-area:sum;display:flex;align-items:center;gap:18px;padding:18px 20px;border-radius:24px}
+.nav button[aria-current=page]{color:var(--text)}
+.nav button[aria-current=page] .i{color:var(--focus)}
+.nav .sep{background:var(--line)}
+.nav .cnt{display:grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:99px;background:var(--grad);color:#fff;font-size:.72rem;font-weight:800;line-height:1}
+.side-foot{display:none}
+.acct{flex:1;min-width:0;display:flex;align-items:center;gap:10px;padding:6px 8px;border-radius:14px;text-align:left;color:var(--muted);font-size:.84rem;font-weight:500;transition:background .15s,color .15s}
+.acct:hover{background:var(--card-h);color:var(--text)}
+.acct .av{width:30px;height:30px;font-size:.85rem}
+.acct .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* status notices (monitoring, pending link) */
+.notice{padding:10px 14px;border-radius:14px;font-size:.82rem;line-height:1.45;color:var(--muted);
+  background:color-mix(in srgb,var(--focus) 10%,transparent);border:1px solid color-mix(in srgb,var(--focus) 22%,transparent)}
+.notice .i{width:14px;height:14px;vertical-align:-2px;margin-right:6px}
+.notice.warn{color:var(--text);background:color-mix(in srgb,#f59e0b 12%,transparent);border-color:color-mix(in srgb,#f59e0b 35%,transparent)}
+.notice .nbtns{display:flex;gap:8px;margin-top:10px}
+.summary{display:flex;align-items:center;gap:18px;padding:18px 20px;border-radius:24px}
 .ring{position:relative;width:88px;height:88px;flex-shrink:0}
 .ring svg{width:100%;height:100%;transform:rotate(-90deg)}
 .ring .trk{stroke:var(--line)}
@@ -242,14 +257,66 @@ h1,h2,h3,p{margin:0}
   #dates{flex-direction:column;width:220px;overflow-x:hidden;overflow-y:auto;border-bottom:0;border-right:1px solid var(--line)}
   #dates button{width:100%}
   #hview{padding:26px 30px}
+  .sheet.fit{height:auto;max-height:min(700px,88dvh)}
 }
 
-/* ---------- passkey modal ---------- */
-#pkModal .sheet{padding:0}
-#pkModal .sheet header{padding:16px 20px}
-#pkBody{padding:20px;overflow-y:auto;flex:1}
-#pkBody h3{font-size:1rem;font-weight:700;margin:0 0 12px}
-#pkBody .sub{color:var(--muted);font-size:.88rem;margin:-8px 0 14px}
+/* ---------- small button variants ---------- */
+.btn.sm{min-height:38px;padding:0 16px;font-size:.88rem;border-radius:12px;box-shadow:none}
+.btn.sm.ghost{border-color:var(--line)}
+.btn.warn-o{background:transparent;color:var(--danger);border:1px solid color-mix(in srgb,var(--danger) 45%,transparent);box-shadow:none}
+.btn.warn-o:hover{background:color-mix(in srgb,var(--danger) 12%,transparent)}
+
+/* ---------- settings ---------- */
+.pagehead{margin:2px 0 26px}
+.pagehead h1{font-size:1.7rem;font-weight:800;letter-spacing:-.035em;line-height:1.15}
+.set{display:grid;gap:30px;max-width:720px}
+.set-head{margin:0 0 10px}
+.set-head h2{font-size:1rem;font-weight:700;letter-spacing:-.01em}
+.set-head p{color:var(--muted);font-size:.86rem;margin-top:2px;max-width:56ch}
+.set-card{border-radius:20px;overflow:hidden}
+.set-card>*+*{border-top:1px solid var(--line)}
+.kv+.kv{border-top:1px solid var(--line)}
+#pfRows:empty{display:none}
+.srow{display:flex;align-items:center;gap:16px;min-height:60px;padding:12px 18px}
+.srow.wrap{flex-wrap:wrap}
+label.srow{cursor:pointer}
+.st{flex:1;min-width:0}
+.st b{display:block;font-weight:600;font-size:.95rem;line-height:1.35}
+.st span{display:block;color:var(--muted);font-size:.84rem;line-height:1.4;margin-top:1px}
+.srow.danger .st b{color:var(--danger)}
+.srow .btn{flex-shrink:0}
+
+/* profile */
+.pf{display:flex;align-items:center;gap:16px;padding:20px 18px}
+.pf .av{width:64px;height:64px;font-size:1.7rem;box-shadow:0 10px 24px rgba(224,53,124,.35)}
+.pf>div>b{display:block;font-size:1.1rem;font-weight:800;letter-spacing:-.02em;line-height:1.25}
+.pf>div>span{display:block;color:var(--muted);font-size:.88rem}
+.kv{min-height:52px}
+.kv .k{flex:0 0 130px;color:var(--muted);font-size:.9rem}
+.kv .v{flex:1;min-width:0;font-weight:600;font-size:.95rem;text-align:right;overflow-wrap:break-word}
+
+/* on/off switch */
+.sw{appearance:none;-webkit-appearance:none;position:relative;flex-shrink:0;width:48px;height:30px;margin:0;border-radius:99px;cursor:pointer;
+  background:color-mix(in srgb,var(--muted) 38%,transparent);transition:background .2s}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.3);transition:transform .2s}
+.sw:checked{background:var(--grad)}
+.sw:checked::after{transform:translateX(18px)}
+.sw:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:99px}
+.seg.inline{margin:0;flex:0 1 230px;min-width:190px}
+.seg button{display:flex;align-items:center;justify-content:center;gap:7px}
+.seg button .i{width:17px;height:17px}
+
+/* passkeys inline */
+.set-card .pk-list{margin:0;gap:0}
+.set-card .pk-item{border:0;border-radius:0;background:none;padding:14px 18px}
+.set-card .pk-item+.pk-item{border-top:1px solid var(--line)}
+.pk-empty{padding:16px 18px;color:var(--muted);font-size:.9rem}
+.pk-empty.err{color:var(--danger)}
+.form-err{color:var(--danger);font-size:.84rem;font-weight:500;padding:10px 18px}
+.form-err:empty{display:none}
+
+/* family modal body */
+.fbody{flex:1;overflow-y:auto;padding:20px;-webkit-overflow-scrolling:touch}
 
 /* ---------- toast ---------- */
 #toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translate(-50%,16px);z-index:80;max-width:min(92vw,420px);
@@ -259,10 +326,22 @@ h1,h2,h3,p{margin:0}
 
 /* ---------- breakpoints ---------- */
 @media(max-width:559px){
-  .side{grid-template-columns:1fr;grid-template-areas:"brand" "sum" "nav";gap:12px}
-  .nav{display:grid;grid-template-columns:repeat(6,1fr);gap:2px;padding:5px;background:var(--card);border:1px solid var(--line);border-radius:18px}
-  .nav button{flex-direction:column;gap:1px;min-height:54px;padding:4px 0;font-size:.68rem;border-radius:13px}
-  .nav .lbl{display:block}
+  .kv{flex-wrap:wrap;gap:2px 16px;padding-top:10px;padding-bottom:12px}
+  .kv .k{flex-basis:100%;font-size:.8rem}
+  .kv .v{flex-basis:100%;text-align:left}
+}
+@media(max-width:899px){
+  .shell{padding-bottom:calc(100px + env(safe-area-inset-bottom))}
+  .nav{position:fixed;z-index:40;left:50%;transform:translateX(-50%);bottom:max(10px,env(safe-area-inset-bottom));width:min(480px,calc(100% - 20px));
+    display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:2px;padding:5px;border-radius:22px;
+    background:color-mix(in srgb,var(--bg2) 95%,transparent);border:1px solid var(--line);box-shadow:var(--shadow);
+    backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+  .nav button{flex-direction:column;justify-content:center;gap:2px;min-height:54px;padding:4px 0;font-size:.72rem;border-radius:17px}
+  .nav button[aria-current=page]{background:color-mix(in srgb,var(--focus) 14%,transparent)}
+  .nav .sep{display:none}
+  .nav .cnt{position:absolute;top:3px;left:calc(50% + 6px);min-width:18px;height:18px;font-size:.68rem}
+  #app[data-view=settings] .summary{display:none}
+  #toast{bottom:calc(88px + env(safe-area-inset-bottom))}
 }
 @media(pointer:coarse){.row input[type=checkbox]{width:26px;height:26px}.subs{margin-left:13px}.addsub{margin-left:35px}}
 @media(min-width:560px){
@@ -271,17 +350,19 @@ h1,h2,h3,p{margin:0}
 }
 @media(min-width:900px){
   .shell{grid-template-columns:300px minmax(0,1fr);gap:32px;padding-top:max(28px,env(safe-area-inset-top))}
-  .side{position:sticky;top:28px;align-self:start;display:flex;flex-direction:column;align-items:stretch;gap:20px;max-height:calc(100dvh - 56px)}
-  .nav{flex-direction:column;gap:2px}
-  .nav button{justify-content:flex-start;padding:0 14px}
-  .nav .lbl{display:inline}
-  .summary{order:2}.nav{order:3}
-  .who{display:block;order:4;color:var(--muted);font-size:.8rem;padding:0 14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .side{position:sticky;top:28px;align-self:start;display:flex;flex-direction:column;align-items:stretch;gap:20px;height:calc(100dvh - 56px)}
+  .nav{display:flex;flex-direction:column;gap:2px}
+  .nav button{gap:12px;min-height:44px;padding:0 14px}
+  .nav button[aria-current=page]{background:var(--card-h)}
+  .nav button[aria-current=page]::before{content:"";position:absolute;left:0;top:11px;bottom:11px;width:3px;border-radius:3px;background:var(--grad)}
+  .nav .sep{height:1px;margin:8px 14px}
+  .nav .cnt{margin-left:auto}
+  .side-foot{display:flex;align-items:center;gap:6px;margin-top:auto;padding-top:14px;border-top:1px solid var(--line)}
   .topic{padding:16px 18px 14px}
 }
 @media(min-width:1280px){.shell{grid-template-columns:340px minmax(0,1fr);gap:44px}}
 @media(max-height:480px) and (orientation:landscape){.auth{align-content:start}.perks{display:none}}
-@media(max-width:380px){.summary{padding:14px}.ring{width:72px;height:72px}.brand{font-size:1.15rem}.nav{gap:0}}
+@media(max-width:380px){.summary{padding:14px}.ring{width:72px;height:72px}.brand{font-size:1.15rem}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -314,6 +395,8 @@ h1,h2,h3,p{margin:0}
   <symbol id="i-family" viewBox="0 0 24 24"><circle cx="8" cy="8" r="3.2"/><circle cx="17" cy="6.5" r="2.4"/><path d="M3 21v-2.4A4.6 4.6 0 017.6 14h.8A4.6 4.6 0 0113 18.6V21"/><path d="M15.2 13.5h.3a3.9 3.9 0 013.9 3.9V21"/></symbol>
   <symbol id="i-chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></symbol>
   <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 3.6L2 20h20L13.7 3.6a2 2 0 00-3.4 0z"/><path d="M12 9v5M12 17v.5"/></symbol>
+  <symbol id="i-today" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="16" rx="3"/><path d="M8 3v3M16 3v3M3.5 10h17M8.5 15l2.5 2.5 4.5-5"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></symbol>
 </svg>
 
 <!-- ============ AUTH ============ -->
@@ -389,19 +472,10 @@ h1,h2,h3,p{margin:0}
 </main>
 
 <!-- ============ APP ============ -->
-<div id="app" class="shell hidden">
+<div id="app" class="shell hidden" data-view="today">
   <aside class="side">
     <div class="brand"><svg aria-hidden="true"><use href="#logo"/></svg><span>Karyadhara</span></div>
-    <nav class="nav" aria-label="Actions">
-      <button id="btnHist" title="History" aria-label="History"><svg class="i"><use href="#i-history"/></svg><span class="lbl">History</span></button>
-      <button id="btnBackup" title="Download my history" aria-label="Download backup"><svg class="i"><use href="#i-download"/></svg><span class="lbl">Backup</span></button>
-      <button id="btnClear" title="Clear today's list" aria-label="Clear today's list"><svg class="i"><use href="#i-eraser"/></svg><span class="lbl">Clear</span></button>
-      <button id="btnPasskeys" title="Manage passkeys" aria-label="Manage passkeys"><svg class="i"><use href="#i-fingerprint"/></svg><span class="lbl">Passkeys</span></button>
-      <button id="btnTheme" title="Switch theme" aria-label="Switch theme"><svg class="i t-sun"><use href="#i-sun"/></svg><svg class="i t-moon"><use href="#i-moon"/></svg><span class="lbl">Theme</span></button>
-      <button id="btnFamily" title="Family" aria-label="Family" style="display:none"><svg class="i"><use href="#i-family"/></svg><span class="lbl">Family</span></button>
-      <button id="btnDeleteAccount" title="Delete account" aria-label="Delete account" style="color:var(--danger)"><svg class="i"><use href="#i-trash"/></svg><span class="lbl">Delete account</span></button>
-      <button id="btnLogout" title="Sign out" aria-label="Sign out"><svg class="i"><use href="#i-logout"/></svg><span class="lbl">Sign out</span></button>
-    </nav>
+
     <section class="panel summary" aria-live="polite">
       <div class="ring">
         <svg viewBox="0 0 84 84" aria-hidden="true"><circle class="trk" cx="42" cy="42" r="36" fill="none" stroke-width="8"/><circle id="ringFg" class="fg" cx="42" cy="42" r="36" fill="none" stroke="url(#rg)" stroke-width="8" stroke-linecap="round"/></svg>
@@ -409,28 +483,127 @@ h1,h2,h3,p{margin:0}
       </div>
       <div class="sumtxt"><h2 id="greet">Hello</h2><div class="dt" id="dateLine"></div><div class="msg" id="sumMsg"></div></div>
     </section>
-    <div class="who" id="whoami"></div>
+
+    <!-- Primary navigation: where you go. Everything about the account lives in Settings. -->
+    <nav class="nav" aria-label="Main">
+      <button type="button" id="btnToday" aria-current="page"><svg class="i"><use href="#i-today"/></svg><span class="lbl">Today</span></button>
+      <button type="button" id="btnHist" aria-haspopup="dialog"><svg class="i"><use href="#i-history"/></svg><span class="lbl">History</span></button>
+      <button type="button" id="btnFamily" aria-haspopup="dialog"><svg class="i"><use href="#i-family"/></svg><span class="lbl">Family</span><span class="cnt" id="famCnt" hidden></span></button>
+      <span class="sep" aria-hidden="true"></span>
+      <button type="button" id="btnSettings"><svg class="i"><use href="#i-settings"/></svg><span class="lbl">Settings</span></button>
+    </nav>
+
     <!-- Child monitoring badge (shown only for verified child accounts) -->
-    <div id="monitorBadge" style="display:none;margin-top:10px;padding:8px 12px;border-radius:12px;font-size:.78rem;color:var(--muted);background:color-mix(in srgb,var(--focus) 10%,transparent);border:1px solid color-mix(in srgb,var(--focus) 22%,transparent);line-height:1.45">
-      <svg class="i" style="width:13px;height:13px;vertical-align:-2px;margin-right:4px"><use href="#i-family"/></svg>
-      <span id="monitorBadgeText"></span>
+    <div id="monitorBadge" class="notice" style="display:none">
+      <svg class="i" aria-hidden="true"><use href="#i-family"/></svg><span id="monitorBadgeText"></span>
     </div>
     <!-- Pending link banner (shown when a link request is awaiting this user) -->
-    <div id="pendingLinkBanner" style="display:none;margin-top:10px;padding:10px 14px;border-radius:12px;font-size:.82rem;background:color-mix(in srgb,#f59e0b 12%,transparent);border:1px solid color-mix(in srgb,#f59e0b 35%,transparent)">
-      <div id="pendingLinkText" style="margin-bottom:8px;color:var(--text)"></div>
-      <div style="display:flex;gap:8px">
-        <button class="btn" id="pendingLinkApprove" style="padding:6px 14px;font-size:.8rem">Approve</button>
-        <button class="btn ghost" id="pendingLinkDecline" style="padding:6px 14px;font-size:.8rem">Ignore</button>
+    <div id="pendingLinkBanner" class="notice warn" style="display:none">
+      <div id="pendingLinkText"></div>
+      <div class="nbtns">
+        <button class="btn sm" id="pendingLinkApprove">Approve</button>
+        <button class="btn sm ghost" id="pendingLinkDecline">Ignore</button>
       </div>
+    </div>
+
+    <!-- Desktop only: who is signed in + quick sign out -->
+    <div class="side-foot">
+      <button type="button" class="acct" id="btnAcct" aria-label="Open your profile in Settings"><span class="av" id="acctAvatar" aria-hidden="true"></span><span class="nm" id="acctName"></span></button>
+      <button type="button" class="ico" id="btnLogout" title="Sign out" aria-label="Sign out"><svg class="i"><use href="#i-logout"/></svg></button>
     </div>
   </aside>
 
   <main class="main">
-    <div class="addbar">
-      <div class="field"><input type="text" class="inp" id="newTopic" placeholder="What's on today's list?" enterkeyhint="done" autocomplete="off"></div>
-      <button class="btn" id="addTopic" aria-label="Add topic"><svg class="i"><use href="#i-plus"/></svg><span class="lbl">Add topic</span></button>
+    <!-- ── Today ── -->
+    <div id="viewToday">
+      <div class="addbar">
+        <div class="field"><input type="text" class="inp" id="newTopic" placeholder="What's on today's list?" enterkeyhint="done" autocomplete="off"></div>
+        <button class="btn" id="addTopic" aria-label="Add topic"><svg class="i"><use href="#i-plus"/></svg><span class="lbl">Add topic</span></button>
+      </div>
+      <div class="list" id="list"></div>
     </div>
-    <div class="list" id="list"></div>
+
+    <!-- ── Settings ── -->
+    <div id="viewSettings" class="hidden">
+      <header class="pagehead"><h1 id="setTitle" tabindex="-1">Settings</h1></header>
+      <div class="set">
+
+        <section aria-labelledby="hProfile">
+          <div class="set-head"><h2 id="hProfile">Profile</h2></div>
+          <div class="panel set-card">
+            <div class="pf">
+              <span class="av" id="pfAvatar" aria-hidden="true"></span>
+              <div><b id="pfType"></b><span id="pfSince"></span></div>
+            </div>
+            <div id="pfRows"></div>
+          </div>
+        </section>
+
+        <section aria-labelledby="hSec">
+          <div class="set-head"><h2 id="hSec">Security</h2><p>Passkeys let you sign in with Face ID, fingerprint or your device PIN — no password needed.</p></div>
+          <div class="panel set-card">
+            <div id="pkList" class="pk-list"></div>
+            <div class="srow wrap">
+              <div class="st"><b>Add a passkey</b><span>Register this device so it can sign you in.</span></div>
+              <button type="button" class="btn ghost sm" id="pkAddBtn"><svg class="i"><use href="#i-plus"/></svg>Add passkey</button>
+            </div>
+            <div id="pkErr" class="form-err" role="alert"></div>
+          </div>
+        </section>
+
+        <section aria-labelledby="hNotif">
+          <div class="set-head"><h2 id="hNotif">Notifications</h2></div>
+          <div class="panel set-card">
+            <label class="srow" for="selfDigestPref">
+              <span class="st"><b>Daily overdue digest</b><span>One email each morning listing tasks you left unfinished on earlier days.</span><span id="digestNote" hidden>Digests for each of your children are managed under Family.</span></span>
+              <input type="checkbox" role="switch" class="sw" id="selfDigestPref" checked>
+            </label>
+          </div>
+        </section>
+
+        <section aria-labelledby="hLook">
+          <div class="set-head"><h2 id="hLook">Appearance</h2></div>
+          <div class="panel set-card">
+            <div class="srow wrap">
+              <div class="st"><b>Theme</b></div>
+              <div class="seg inline" role="group" aria-label="Theme">
+                <button type="button" id="themeLight" aria-pressed="false"><svg class="i"><use href="#i-sun"/></svg>Light</button>
+                <button type="button" id="themeDark" aria-pressed="false"><svg class="i"><use href="#i-moon"/></svg>Dark</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section aria-labelledby="hData">
+          <div class="set-head"><h2 id="hData">Your data</h2></div>
+          <div class="panel set-card">
+            <div class="srow wrap">
+              <div class="st"><b>Download my history</b><span>Save every day you've logged as a file.</span></div>
+              <button type="button" class="btn ghost sm" id="btnBackup"><svg class="i"><use href="#i-download"/></svg>Download</button>
+            </div>
+            <div class="srow wrap">
+              <div class="st"><b>Clear today's list</b><span>Remove every topic on today's list. Past days stay in your history.</span></div>
+              <button type="button" class="btn ghost sm" id="btnClear"><svg class="i"><use href="#i-eraser"/></svg>Clear list</button>
+            </div>
+          </div>
+        </section>
+
+        <section aria-labelledby="hAcct">
+          <div class="set-head"><h2 id="hAcct">Account</h2></div>
+          <div class="panel set-card">
+            <div class="srow wrap">
+              <div class="st"><b>Sign out of this device</b><span>You'll need to sign in again here.</span></div>
+              <button type="button" class="btn ghost sm" id="btnLogoutSet"><svg class="i"><use href="#i-logout"/></svg>Sign out</button>
+            </div>
+            <div class="srow wrap danger">
+              <div class="st"><b>Delete account</b><span>Permanently erase your account and everything in it.</span></div>
+              <button type="button" class="btn warn-o sm" id="btnDeleteAccount"><svg class="i"><use href="#i-trash"/></svg>Delete</button>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
   </main>
 </div>
 
@@ -439,26 +612,6 @@ h1,h2,h3,p{margin:0}
   <div class="sheet">
     <header><svg class="i" style="color:var(--focus)"><use href="#i-history"/></svg><h2>History</h2><button class="ico" id="histClose" aria-label="Close history"><svg class="i"><use href="#i-x"/></svg></button></header>
     <div class="hbody"><nav id="dates" aria-label="Dates"></nav><section id="hview"></section></div>
-  </div>
-</div>
-
-<!-- ============ PASSKEY MANAGER ============ -->
-<div id="pkModal" class="modal" role="dialog" aria-modal="true" aria-label="Manage Passkeys">
-  <div class="sheet" style="max-width:480px;width:100%;height:auto;max-height:88dvh;border-radius:26px;margin:auto;border:1px solid var(--line)">
-    <header>
-      <svg class="i" style="color:var(--focus)"><use href="#i-fingerprint"/></svg>
-      <h2>Passkeys</h2>
-      <button class="ico" id="pkClose" aria-label="Close"><svg class="i"><use href="#i-x"/></svg></button>
-    </header>
-    <div id="pkBody" style="padding:20px;overflow-y:auto">
-      <h3>Your registered passkeys</h3>
-      <p class="sub">Passkeys let you sign in with Face ID, fingerprint or PIN — no password needed.</p>
-      <div id="pkList" class="pk-list"></div>
-      <button class="btn" id="pkAddBtn" style="width:100%;margin-top:16px">
-        <svg class="i"><use href="#i-plus"/></svg>Add a passkey for this device
-      </button>
-      <div id="pkErr" style="color:var(--danger);font-size:.88rem;margin-top:10px;min-height:18px;font-weight:500"></div>
-    </div>
   </div>
 </div>
 
@@ -494,43 +647,36 @@ h1,h2,h3,p{margin:0}
 
 <!-- ============ FAMILY MODAL ============ -->
 <div id="familyModal" class="modal" role="dialog" aria-modal="true" aria-label="Family">
-  <div class="sheet" style="max-width:520px">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 20px 0">
-      <h2 style="margin:0;font-size:1.15rem">Family</h2>
-      <button class="ico" id="familyClose" aria-label="Close" style="font-size:1.4rem;padding:4px 10px">✕</button>
-    </div>
-    <div style="padding:20px;overflow-y:auto;max-height:70dvh">
-      <!-- Tabs -->
-      <div style="display:flex;gap:8px;margin-bottom:18px">
-        <button class="btn" id="fTabChildren" style="flex:1;font-size:.85rem">My Children</button>
-        <button class="btn ghost" id="fTabInvite" style="flex:1;font-size:.85rem">Invite / Link</button>
+  <div class="sheet fit" style="max-width:520px">
+    <header>
+      <svg class="i" style="color:var(--focus)"><use href="#i-family"/></svg>
+      <h2>Family</h2>
+      <button class="ico" id="familyClose" aria-label="Close family"><svg class="i"><use href="#i-x"/></svg></button>
+    </header>
+    <div class="fbody">
+      <div class="seg" role="tablist" aria-label="Family sections" id="fTabs">
+        <button type="button" id="fTabChildren" role="tab" class="on" aria-selected="true">Children</button>
+        <button type="button" id="fTabInvite" role="tab" aria-selected="false">Link account</button>
       </div>
+
       <!-- Children panel -->
       <div id="fPanelChildren">
         <div id="fChildList" style="display:flex;flex-direction:column;gap:12px"></div>
-        <p id="fChildEmpty" style="color:var(--muted);font-size:.88rem;display:none">No linked children yet. Use the Invite / Link tab to add one.</p>
+        <p id="fChildEmpty" style="color:var(--muted);font-size:.88rem;display:none">No linked children yet. Use <strong>Link account</strong> to add one.</p>
       </div>
-      <!-- Invite panel -->
+
+      <!-- Link panel -->
       <div id="fPanelInvite" style="display:none">
-        <div style="margin-bottom:18px">
-          <p style="font-size:.88rem;color:var(--muted);margin:0 0 10px">Enter the email of the person you want to link to this account.</p>
-          <label for="fInviteEmail" style="font-size:.85rem;font-weight:600">Their email address</label>
-          <div class="field" style="margin-top:6px"><input type="email" id="fInviteEmail" placeholder="email@example.com" autocapitalize="none" spellcheck="false"></div>
-          <div style="display:flex;gap:8px;margin-top:10px">
-            <button class="btn ghost" id="fInviteAsParent" style="flex:1;font-size:.82rem">I am their parent</button>
-            <button class="btn ghost" id="fInviteAsChild" style="flex:1;font-size:.82rem">They are my parent</button>
-          </div>
-          <div id="fInviteErr" style="color:var(--danger);font-size:.82rem;margin-top:8px;min-height:16px"></div>
+        <p style="font-size:.88rem;color:var(--muted);margin:0 0 10px">Enter the email of the person you want to link to this account.</p>
+        <label for="fInviteEmail" style="font-size:.85rem;font-weight:600">Their email address</label>
+        <div class="field" style="margin-top:6px"><input type="email" id="fInviteEmail" placeholder="email@example.com" autocapitalize="none" spellcheck="false"></div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn ghost" id="fInviteAsParent" style="flex:1;font-size:.82rem">I am their parent</button>
+          <button class="btn ghost" id="fInviteAsChild" style="flex:1;font-size:.82rem">They are my parent</button>
         </div>
-        <!-- Notification prefs for own account -->
-        <div style="border-top:1px solid var(--line);padding-top:16px;margin-top:4px">
-          <h3 style="margin:0 0 10px;font-size:.92rem;font-weight:700">My notification preferences</h3>
-          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:.88rem">
-            <input type="checkbox" id="selfDigestPref" checked style="width:18px;height:18px;cursor:pointer">
-            Daily digest of my own overdue tasks
-          </label>
-        </div>
+        <div id="fInviteErr" style="color:var(--danger);font-size:.82rem;margin-top:8px;min-height:16px"></div>
       </div>
+
       <!-- Child detail view -->
       <div id="fPanelChild" style="display:none">
         <button id="fChildBack" style="background:none;border:none;color:var(--focus);cursor:pointer;font-size:.88rem;padding:0;margin-bottom:14px">← Back to children</button>
@@ -542,10 +688,10 @@ h1,h2,h3,p{margin:0}
             <button class="btn" id="fChildAddTask" style="white-space:nowrap"><svg class="i"><use href="#i-plus"/></svg><span>Add</span></button>
           </div>
         </div>
-        <div style="border-top:1px solid var(--line);padding-top:14px;margin-top:18px">
-          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:.88rem">
-            <input type="checkbox" id="fChildDigestPref" checked style="width:18px;height:18px;cursor:pointer">
-            Daily digest for this child
+        <div class="panel set-card" style="margin-top:18px">
+          <label class="srow" for="fChildDigestPref">
+            <span class="st"><b>Daily digest for this child</b><span>Get an email each morning listing their unfinished tasks.</span></span>
+            <input type="checkbox" role="switch" class="sw" id="fChildDigestPref" checked>
           </label>
         </div>
       </div>
@@ -646,13 +792,18 @@ const passkeySupported = () => window.PublicKeyCredential !== undefined && typeo
 // ─────────────────────────────────────────────────────────────────────────────
 //  Theme
 // ─────────────────────────────────────────────────────────────────────────────
-$('btnTheme').onclick = () => {
-  const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
-  document.documentElement.dataset.theme = next;
-  document.querySelector('meta[name=theme-color]').content = next === 'light' ? '#fbf6f0' : '#0d0e1c';
-  try { localStorage.setItem('karyadhara-theme', next); } catch (e) {}
-};
-document.querySelector('meta[name=theme-color]').content = document.documentElement.dataset.theme === 'light' ? '#fbf6f0' : '#0d0e1c';
+function applyTheme(t, save) {
+  document.documentElement.dataset.theme = t;
+  document.querySelector('meta[name=theme-color]').content = t === 'light' ? '#fbf6f0' : '#0d0e1c';
+  if (save) { try { localStorage.setItem('karyadhara-theme', t); } catch (e) {} }
+  [['Light', 'light'], ['Dark', 'dark']].forEach(([n, v]) => {
+    const b = $('theme' + n), on = t === v;
+    b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on));
+  });
+}
+$('themeLight').onclick = () => applyTheme('light', true);
+$('themeDark').onclick  = () => applyTheme('dark', true);
+applyTheme(document.documentElement.dataset.theme, false);
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Auth screen state
@@ -838,37 +989,24 @@ $('otpResend').onclick = async () => {
 // ─────────────────────────────────────────────────────────────────────────────
 //  Passkey Manager (in-app modal)
 // ─────────────────────────────────────────────────────────────────────────────
-async function openPasskeyManager() {
-  $('pkErr').textContent = '';
-  $('pkModal').classList.add('show');
-  document.body.classList.add('lock');
-  await refreshPasskeyList();
-}
-function closePasskeyManager() {
-  $('pkModal').classList.remove('show');
-  document.body.classList.remove('lock');
-}
-
 async function refreshPasskeyList() {
-  $('pkList').innerHTML = '<div style="color:var(--muted);font-size:.88rem">Loading…</div>';
+  const note = (msg, err) => `<div class="pk-empty${err ? ' err' : ''}">${msg}</div>`;
+  $('pkList').innerHTML = note('Loading…');
   try {
     const { passkeys } = await api('/passkeys');
-    if (!passkeys.length) {
-      $('pkList').innerHTML = '<div style="color:var(--muted);font-size:.88rem">No passkeys yet. Add one below.</div>';
-      return;
-    }
+    if (!passkeys.length) { $('pkList').innerHTML = note('No passkeys yet.'); return; }
     $('pkList').innerHTML = passkeys.map(pk => `
       <div class="pk-item" data-pk-id="${esc(pk.id)}">
         <svg class="i" style="color:var(--focus);flex-shrink:0"><use href="#i-fingerprint"/></svg>
         <div style="flex:1;min-width:0">
           <div class="pk-name">${esc(pk.name || 'Passkey')}</div>
-          <div class="pk-meta">${pk.backed_up ? '☁️ Synced' : '📱 This device'} · Added ${new Date(pk.created_at).toLocaleDateString()}</div>
+          <div class="pk-meta">${pk.backed_up ? 'Synced across devices' : 'This device only'} · Added ${new Date(pk.created_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}</div>
         </div>
-        <button class="pk-del" data-pk-id="${esc(pk.id)}" aria-label="Remove passkey">Remove</button>
+        <button class="pk-del" data-pk-id="${esc(pk.id)}" aria-label="Remove passkey ${esc(pk.name || '')}">Remove</button>
       </div>
     `).join('');
   } catch (e) {
-    $('pkList').innerHTML = '<div style="color:var(--danger);font-size:.88rem">Could not load passkeys.</div>';
+    $('pkList').innerHTML = note('Could not load passkeys.', true);
   }
 }
 
@@ -921,12 +1059,9 @@ $('pkAddBtn').onclick = async () => {
     }
   }
   $('pkAddBtn').disabled = false;
-  $('pkAddBtn').innerHTML = ic('plus') + ' Add a passkey for this device';
+  $('pkAddBtn').innerHTML = ic('plus') + 'Add passkey';
 };
 
-$('btnPasskeys').onclick = openPasskeyManager;
-$('pkClose').onclick = closePasskeyManager;
-$('pkModal').addEventListener('click', e => { if (e.target === $('pkModal')) closePasskeyManager(); });
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Todo logic (unchanged from original)
@@ -1075,7 +1210,10 @@ $('btnClear').onclick = () => {
   data.topics = []; persist(); render(); toast("Today's list cleared");
 };
 $('btnBackup').onclick = () => { window.location.href = '/api/export'; toast('Preparing your backup download…'); };
-$('btnLogout').onclick = async () => { flush(); await api('/logout', { method: 'POST' }); location.reload(); };
+const leaveApp = () => history.replaceState(null, '', location.pathname + location.search); // don't land on #settings after next sign-in
+const signOut = async () => { flush(); await api('/logout', { method: 'POST' }); leaveApp(); location.reload(); };
+$('btnLogout').onclick = signOut;
+$('btnLogoutSet').onclick = signOut;
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  History viewer
@@ -1110,7 +1248,7 @@ $('histClose').onclick = hideHistory;
 $('hist').addEventListener('click', e => { if (e.target === $('hist')) hideHistory(); });
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
-    if ($('pkModal').classList.contains('show')) { closePasskeyManager(); return; }
+    if ($('familyModal').classList.contains('show')) { closeFamilyModal(); return; }
     if ($('hist').classList.contains('show')) { hideHistory(); }
   }
 });
@@ -1235,6 +1373,7 @@ $('deleteConfirmBtn').onclick = async () => {
     flush(); // save any unsaved task state before the account disappears
     await api('/account', { method: 'DELETE' });
     // Server has cleared the cookie; reload to show the auth screen.
+    leaveApp();
     location.reload();
   } catch (e) {
     $('deleteModalErr').textContent = e.message || 'Could not delete account. Please try again.';
@@ -1323,15 +1462,24 @@ let pendingLinks   = [];       // pending link rows for current user
 let currentUserId  = null;     // set at boot
 let currentUserRole = null;
 
-function openFamilyModal()  { $('familyModal').classList.add('show'); document.body.classList.add('lock'); fShowChildren(); }
+function openFamilyModal() {
+  $('familyModal').classList.add('show'); document.body.classList.add('lock');
+  famTab(familyChildren.length ? 'children' : 'invite'); // nothing to list yet → open straight on linking
+}
 function closeFamilyModal() { $('familyModal').classList.remove('show'); document.body.classList.remove('lock'); }
 
 $('btnFamily').onclick = openFamilyModal;
 $('familyClose').onclick = closeFamilyModal;
 $('familyModal').addEventListener('click', e => { if (e.target === $('familyModal')) closeFamilyModal(); });
 
-$('fTabChildren').onclick = () => { $('fTabChildren').classList.remove('ghost'); $('fTabInvite').classList.add('ghost'); fShowChildren(); };
-$('fTabInvite').onclick   = () => { $('fTabInvite').classList.remove('ghost'); $('fTabChildren').classList.add('ghost'); fShowInvite(); };
+function famTab(which) {
+  const kids = which === 'children';
+  $('fTabChildren').classList.toggle('on', kids);  $('fTabChildren').setAttribute('aria-selected', String(kids));
+  $('fTabInvite').classList.toggle('on', !kids);   $('fTabInvite').setAttribute('aria-selected', String(!kids));
+  if (kids) fShowChildren(); else fShowInvite();
+}
+$('fTabChildren').onclick = () => famTab('children');
+$('fTabInvite').onclick   = () => famTab('invite');
 
 function fShowPanel(name) {
   ['fPanelChildren','fPanelInvite','fPanelChild'].forEach(id => $$(id).style.display = id === name ? '' : 'none');
@@ -1458,20 +1606,21 @@ $('fChildDigestPref').onchange = async () => {
   });
 };
 
-function fShowInvite() {
-  fShowPanel('fPanelInvite');
-  // Load own notification pref.
+function fShowInvite() { fShowPanel('fPanelInvite'); }
+
+// Own digest preference — lives in Settings → Notifications.
+function loadSelfDigestPref() {
   api('/family/notification-prefs').then(prefs => {
     const self = prefs.find(p => p.user_id === currentUserId && p.watcher_id === currentUserId);
     $('selfDigestPref').checked = self ? self.overdue_digest : true;
   }).catch(() => {});
 }
-
 $('selfDigestPref').onchange = async () => {
-  await api('/family/notification-prefs', {
-    method: 'PUT',
-    body: JSON.stringify({ overdueDigest: $('selfDigestPref').checked }),
-  });
+  const box = $('selfDigestPref'), want = box.checked;
+  try {
+    await api('/family/notification-prefs', { method: 'PUT', body: JSON.stringify({ overdueDigest: want }) });
+    toast(want ? 'Daily digest turned on.' : 'Daily digest turned off.');
+  } catch (e) { box.checked = !want; toast(e.message || 'Could not save that change.', 'error'); }
 };
 
 async function sendFamilyInvite(initiatedAs) {
@@ -1493,16 +1642,26 @@ $('fInviteAsParent').onclick = () => sendFamilyInvite('parent');
 $('fInviteAsChild').onclick  = () => sendFamilyInvite('child');
 
 // Pending link banner
+const isIncoming = (l) => !!profile && !!profile.email &&
+  ((l.parent_email === profile.email && l.created_by === 'child') || (l.child_email === profile.email && l.created_by === 'parent'));
+
+function updateFamilyBadge() {
+  const n = pendingLinks.length, el = $('famCnt');
+  el.hidden = !n; el.textContent = n;
+  $('btnFamily').setAttribute('aria-label', n ? `Family, ${n} pending request${n > 1 ? 's' : ''}` : 'Family');
+}
+
 async function loadPendingLinks() {
   try {
-    pendingLinks = await api('/family/pending');
+    pendingLinks = (await api('/family/pending')).filter(isIncoming);
+    updateFamilyBadge();
     if (!pendingLinks.length) { $('pendingLinkBanner').style.display = 'none'; return; }
     const link = pendingLinks[0]; // show the first pending link
     const initiator = link.created_by === 'parent' ? link.parent_email : link.child_email;
     $('pendingLinkText').textContent = `${initiator} wants to link accounts with you on Karyadhara.`;
     $('pendingLinkBanner').style.display = '';
     $('pendingLinkBanner').dataset.linkId = link.id;
-  } catch(_) { $('pendingLinkBanner').style.display = 'none'; }
+  } catch(_) { pendingLinks = []; updateFamilyBadge(); $('pendingLinkBanner').style.display = 'none'; }
 }
 
 $('pendingLinkApprove').onclick = async () => {
@@ -1522,17 +1681,24 @@ $('pendingLinkDecline').onclick = () => {
   toast('Request ignored.');
 };
 
-// Monitoring badge for child accounts
+// Monitoring info for child accounts (sidebar notice + Settings → Profile)
+let monitorInfo = null; // { parents: [email], endsOn: 'YYYY-MM-DD' | null }
+const isoDay   = (v) => v ? String(v).slice(0, 10) : null;           // DATE columns arrive as ISO timestamps
+const addYears = (iso, n) => { const [y, m, d] = iso.split('-').map(Number); const t = new Date(y + n, m - 1, d);
+  return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`; };
+const ageOn    = (iso) => { const [y, m, d] = iso.split('-').map(Number), n = new Date();
+  return n.getFullYear() - y - ((n.getMonth() + 1 < m || (n.getMonth() + 1 === m && n.getDate() < d)) ? 1 : 0); };
+
 async function loadMonitoringBadge() {
+  monitorInfo = null;
   if (currentUserRole !== 'child') { $('monitorBadge').style.display = 'none'; return; }
   try {
     const { parents, childDateOfBirth } = await api('/family/parents');
     if (!parents.length) { $('monitorBadge').style.display = 'none'; return; }
-    const names  = parents.map(p => p.email).join(', ');
-    const expiry = childDateOfBirth
-      ? ` until ${new Date(new Date(childDateOfBirth).getFullYear() + 18, new Date(childDateOfBirth).getMonth(), new Date(childDateOfBirth).getDate()).toLocaleDateString(undefined, { year:'numeric', month:'short', day:'numeric' })}`
-      : '';
-    $('monitorBadgeText').textContent = `Monitored by ${names}${expiry}`;
+    const dob = isoDay(childDateOfBirth);
+    monitorInfo = { parents: parents.map(p => p.email), endsOn: dob ? addYears(dob, 18) : null };
+    $('monitorBadgeText').textContent = `Monitored by ${monitorInfo.parents.join(', ')}` +
+      (monitorInfo.endsOn ? ` until ${fmt(monitorInfo.endsOn, { year: 'numeric', month: 'short', day: 'numeric' })}` : '');
     $('monitorBadge').style.display = '';
   } catch(_) { $('monitorBadge').style.display = 'none'; }
 }
@@ -1540,13 +1706,64 @@ async function loadMonitoringBadge() {
 async function loadFamilyState() {
   try {
     familyChildren = await api('/family/children');
-    const hasChildren = familyChildren.length > 0;
-    const isChild     = currentUserRole === 'child';
-    // Show Family button if user is a parent or a child being monitored.
-    $('btnFamily').style.display = (hasChildren || isChild) ? '' : 'none';
     await loadMonitoringBadge();
     await loadPendingLinks();
   } catch(_) {}
+  renderProfile();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Navigation + Settings
+//  Primary nav = where you go (Today · History · Family · Settings).
+//  Settings = everything about the account, grouped: Profile → Security →
+//  Notifications → Appearance → Your data → Account.
+// ─────────────────────────────────────────────────────────────────────────────
+let profile = null; // /api/me
+const ROLE_LABEL = { standalone: 'Personal account', parent: 'Parent account', child: 'Child account' };
+const LONG_DATE  = { day: 'numeric', month: 'long', year: 'numeric' };
+const viewFromHash = () => location.hash === '#settings' ? 'settings' : 'today';
+
+function setView(name, { push = true } = {}) {
+  const settings = name === 'settings';
+  $('app').dataset.view = settings ? 'settings' : 'today';
+  $('viewToday').classList.toggle('hidden', settings);
+  $('viewSettings').classList.toggle('hidden', !settings);
+  [['btnToday', !settings], ['btnSettings', settings]].forEach(([id, on]) =>
+    on ? $(id).setAttribute('aria-current', 'page') : $(id).removeAttribute('aria-current'));
+  if (push && viewFromHash() !== (settings ? 'settings' : 'today'))
+    history.pushState(null, '', settings ? '#settings' : location.pathname + location.search);
+  window.scrollTo(0, 0);
+  if (settings) { $('pkErr').textContent = ''; renderProfile(); refreshPasskeyList(); loadSelfDigestPref(); }
+}
+addEventListener('popstate', () => { if (currentUserId) setView(viewFromHash(), { push: false }); });
+$('btnToday').onclick    = () => setView('today');
+$('btnSettings').onclick = () => { setView('settings'); $('setTitle').focus({ preventScroll: true }); };
+$('btnAcct').onclick     = $('btnSettings').onclick;
+
+function renderProfile() {
+  if (!profile) return;
+  const role = currentUserRole === 'child' ? 'child'
+             : (currentUserRole === 'parent' || familyChildren.length) ? 'parent' : 'standalone';
+  const initial = (profile.identifier || '?').trim().charAt(0).toUpperCase();
+  $('pfAvatar').textContent = initial; $('acctAvatar').textContent = initial;
+  $('acctName').textContent = profile.identifier || ''; $('btnAcct').title = profile.identifier || '';
+  $('pfType').textContent = ROLE_LABEL[role];
+  const since = profile.createdAt ? new Date(profile.createdAt) : null;
+  $('pfSince').textContent = since && !isNaN(since) ? 'Member since ' + since.toLocaleDateString(undefined, { month: 'long', year: 'numeric' }) : '';
+
+  const rows = [];
+  if (profile.email) rows.push(['Email', esc(profile.email)]);
+  if (profile.phone) rows.push(['Mobile', esc(profile.phone)]);
+  const dob = isoDay(profile.dateOfBirth);
+  if (dob) rows.push(['Date of birth', `${esc(fmt(dob, LONG_DATE))} (age ${ageOn(dob)})`]);
+  if (role === 'child' && monitorInfo) {
+    rows.push(['Monitored by', monitorInfo.parents.map(esc).join('<br>')]);
+    if (monitorInfo.endsOn) rows.push(['Monitoring ends', esc(fmt(monitorInfo.endsOn, LONG_DATE))]);
+  } else if (role === 'parent' && familyChildren.length) {
+    rows.push(['Children', `${familyChildren.length} linked`]);
+  }
+  $('pfRows').innerHTML = rows.map(([k, v]) => `<div class="srow kv"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('');
+  $('digestNote').hidden = !(role === 'parent' && familyChildren.length);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1558,11 +1775,12 @@ async function boot() {
     currentUserId   = me.id   || null;
     currentUserRole = me.role || 'standalone';
     $('auth').classList.add('hidden'); $('app').classList.remove('hidden');
-    $('whoami').textContent = me.identifier; $('whoami').title = me.identifier;
+    profile = me; renderProfile();
     data = await api('/data');
     data.history = data.history || {};
     if (rolloverIfNeeded()) persist();
     render();
+    setView(viewFromHash(), { push: false });
     $('list').classList.add('enter'); setTimeout(() => $('list').classList.remove('enter'), 900);
     if (!boot.timer) boot.timer = setInterval(() => { if (data && rolloverIfNeeded()) { persist(); render(); } }, 60000);
     // Load family state after the main UI is ready.

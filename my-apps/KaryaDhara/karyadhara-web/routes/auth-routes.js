@@ -243,12 +243,12 @@ router.post('/logout', (req, res) => {
 
 router.get('/me', requireAuth, async (req, res) => {
   const result = await pool.query(
-    'SELECT id, email, phone, role, date_of_birth FROM users WHERE id = $1',
+    'SELECT id, email, phone, role, date_of_birth, created_at FROM users WHERE id = $1',
     [req.userId]
   );
   if (!result.rows.length) return res.status(401).json({ error: 'Not signed in.' });
-  const { id, email, phone, role, date_of_birth } = result.rows[0];
-  res.json({ id, email, phone, role, dateOfBirth: date_of_birth, identifier: email || phone });
+  const { id, email, phone, role, date_of_birth, created_at } = result.rows[0];
+  res.json({ id, email, phone, role, dateOfBirth: date_of_birth, createdAt: created_at, identifier: email || phone });
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
