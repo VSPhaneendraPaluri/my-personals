@@ -25,7 +25,8 @@ function getMailTransporter() {
 }
 
 async function sendOtpEmail(email, code, { purpose } = {}) {
-  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+  const useApi = !!process.env.BREVO_API_KEY;
+  if (!useApi && (!process.env.SMTP_USER || !process.env.SMTP_PASS)) {
     const err = new Error('Email is not configured on this server.');
     err.code = 'EMAIL_NOT_CONFIGURED';
     throw err;
@@ -36,19 +37,16 @@ async function sendOtpEmail(email, code, { purpose } = {}) {
     ? 'Enter this code to finish creating your Karyadhara account:'
     : 'Your one-time sign-in code:';
 
-  await getMailTransporter().sendMail({
-    from: `"Karyadhara" <${process.env.SMTP_USER}>`,
-    to: email,
-    subject: `${code} — ${heading}`,
-    text: [
+  const subject = `${code} — ${heading}`;
+  const text = [
       intro,
       code,
       '',
       'Valid for 10 minutes. Do not share it with anyone.',
       '',
       'If you did not request this, you can safely ignore this email.',
-    ].join('\n'),
-    html: `
+    ].join('\n');
+  const html = `
       <div style="font-family:system-ui,sans-serif;max-width:480px;margin:0 auto;padding:32px 24px">
         <h2 style="font-size:1.6rem;font-weight:800;margin:0 0 8px">Karyadhara</h2>
         <p style="color:#6c6784;margin:0 0 28px">कार्यधारा · a steady stream of work</p>
@@ -57,8 +55,51 @@ async function sendOtpEmail(email, code, { purpose } = {}) {
         <p style="color:#6c6784;font-size:.9rem;margin:0">Valid for <strong>10 minutes</strong>. Do not share this code.</p>
         <p style="color:#a39fb8;font-size:.8rem;margin:24px 0 0">If you did not request this, you can safely ignore this email.</p>
       </div>
-    `,
+    `;
+
+  if (useApi) return sendViaBrevo({ email, subject, text, html });
+
+  await getMailTransporter().sendMail({
+    from: `"Karyadhara" <${process.env.SMTP_USER}>`,
+    to: email,
+    subject,
+    text,
+    html,
   });
+}
+
+// HTTPS email API (Brevo). Render's free tier blocks outbound SMTP (ports
+// 25/465/587), so this goes over port 443 instead. Free plan: 300 emails/day.
+// MAIL_FROM must be a sender verified in Brevo (Senders & IP → Senders).
+async function sendViaBrevo({ email, subject, text, html }) {
+  const sender = process.env.MAIL_FROM || process.env.SMTP_USER;
+  if (!sender) {
+    const err = new Error('MAIL_FROM is not set.');
+    err.code = 'EMAIL_NOT_CONFIGURED';
+    throw err;
+  }
+  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: {
+      'api-key': process.env.BREVO_API_KEY,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify({
+      sender: { name: 'Karyadhara', email: sender },
+      to: [{ email }],
+      subject,
+      textContent: text,
+      htmlContent: html,
+    }),
+    signal: AbortSignal.timeout(15_000),
+  });
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    const err = new Error(`Brevo rejected the email (${res.status}): ${body || res.statusText}`);
+    err.code = 'EMAIL_SEND_FAILED';
+    throw err;
+  }
 }
 
 // ── SMS (SMS Gateway for Android — free, open-source, self-hosted) ─────────
